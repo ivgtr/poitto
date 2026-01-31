@@ -13,6 +13,7 @@ interface UseTaskListReturn {
   tasks: Task[];
   completeTask: (taskId: string) => Promise<void>;
   addTask: (newTask: Task) => void;
+  updateTask: (taskId: string, updatedTask: Task) => void;
 }
 
 export function useTaskList({ initialTasks }: UseTaskListProps): UseTaskListReturn {
@@ -32,9 +33,16 @@ export function useTaskList({ initialTasks }: UseTaskListProps): UseTaskListRetu
     setTasks((prev) => [newTask, ...prev]);
   }, []);
 
+  const updateTask = useCallback((taskId: string, updatedTask: Task) => {
+    setTasks((prev) =>
+      prev.map((task) => (task.id === taskId ? updatedTask : task))
+    );
+  }, []);
+
   return {
     tasks,
     completeTask,
     addTask,
+    updateTask,
   };
 }

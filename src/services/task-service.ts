@@ -1,11 +1,20 @@
+"use client";
+
 import { Task } from "@/types/task";
-import { createTask, updateTaskStatus } from "@/actions/tasks";
+import { createTask, updateTaskStatus, updateTask } from "@/actions/tasks";
 import { TaskInfo } from "@/domain/task/task-fields";
 import { AppError } from "@/lib/errors";
 
 export interface TaskService {
   create(taskInfo: TaskInfo, userId: string): Promise<Task>;
   complete(taskId: string): Promise<void>;
+  update(taskId: string, data: {
+    title?: string;
+    category?: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }): Promise<Task>;
 }
 
 function handleActionResult<T>(result: { success: boolean; data?: T; error?: AppError }): T {
@@ -35,4 +44,35 @@ export const taskService: TaskService = {
     const result = await updateTaskStatus(taskId, "done");
     handleActionResult(result);
   },
+
+  async update(taskId: string, data: {
+    title?: string;
+    category?: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }): Promise<Task> {
+    const result = await updateTask(taskId, data);
+    return handleActionResult(result);
+  },
 };
+
+export async function handleTaskUpdate(
+  taskId: string,
+  data: {
+    title?: string;
+    category?: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  },
+  onUpdate: (taskId: string, task: Task) => void
+): Promise<void> {
+  try {
+    const updatedTask = await taskService.update(taskId, data);
+    onUpdate(taskId, updatedTask);
+  } catch (error) {
+    console.error("[handleTaskUpdate] Error:", error);
+    throw error;
+  }
+}
