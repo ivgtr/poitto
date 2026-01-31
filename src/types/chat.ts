@@ -54,3 +54,17 @@ export const ChatMessageSchema = z.object({
 });
 
 export type ChatMessage = z.infer<typeof ChatMessageSchema>;
+
+// 型安全な変換関数
+export function toTaskInfo(data: unknown): TaskInfo {
+  const result = TaskInfoSchema.safeParse(data);
+  if (!result.success) {
+    console.error("TaskInfo validation failed:", result.error);
+    throw new Error("Invalid TaskInfo data");
+  }
+  return result.data;
+}
+
+export function isValidTaskInfo(data: unknown): data is TaskInfo {
+  return TaskInfoSchema.safeParse(data).success;
+}
