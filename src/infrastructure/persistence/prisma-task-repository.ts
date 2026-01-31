@@ -79,3 +79,51 @@ export async function scheduleTaskInDB(taskId: string, scheduledAt: Date): Promi
 
   return mapPrismaTaskToTask(task);
 }
+
+export async function updateTaskInDB(
+  taskId: string,
+  data: {
+    title?: string;
+    category?: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }
+): Promise<Task> {
+  const updateData: any = {};
+
+  if (data.title !== undefined) {
+    const trimmedTitle = data.title.trim();
+    if (!trimmedTitle) {
+      throw new Error("タスクのタイトルが必要です");
+    }
+    updateData.title = trimmedTitle;
+  }
+
+  if (data.category !== undefined) {
+    updateData.category = data.category;
+  }
+
+  if (data.deadline !== undefined) {
+    updateData.deadline = data.deadline;
+  }
+
+  if (data.scheduledAt !== undefined) {
+    updateData.scheduledAt = data.scheduledAt;
+    // scheduledAtが設定された場合、ステータスを更新
+    if (data.scheduledAt) {
+      updateData.status = "scheduled";
+    }
+  }
+
+  if (data.durationMinutes !== undefined) {
+    updateData.durationMinutes = data.durationMinutes;
+  }
+
+  const task = await prisma.task.update({
+    where: { id: taskId },
+    data: updateData,
+  });
+
+  return mapPrismaTaskToTask(task);
+}

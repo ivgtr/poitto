@@ -15,6 +15,7 @@ import {
   getTasksFromDB,
   updateTaskStatusInDB,
   scheduleTaskInDB,
+  updateTaskInDB,
 } from "@/infrastructure/persistence/prisma-task-repository";
 
 /**
@@ -108,6 +109,38 @@ export async function scheduleTask(
     return success(task);
   } catch (error) {
     console.error("[scheduleTask] Error:", error);
+    return failure(handleError(error));
+  }
+}
+
+export async function updateTask(
+  taskId: string,
+  data: {
+    title?: string;
+    category?: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }
+): Promise<ActionResult<Task>> {
+  try {
+    if (!taskId) {
+      return failure(
+        createError(ErrorCode.INVALID_INPUT, "Task ID is required")
+      );
+    }
+
+    if (data.title !== undefined && !data.title.trim()) {
+      return failure(
+        createError(ErrorCode.MISSING_REQUIRED_FIELD, "Title is required")
+      );
+    }
+
+    const task = await updateTaskInDB(taskId, data);
+    revalidatePath("/");
+    return success(task);
+  } catch (error) {
+    console.error("[updateTask] Error:", error);
     return failure(handleError(error));
   }
 }
