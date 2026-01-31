@@ -34,9 +34,10 @@
 
 ### 優先度中
 
-- [ ] Integration Tests追加
-  - API Routesのテスト
-  - Server Actionsのテスト
+- [x] Integration Tests追加
+  - [x] API Routesのテスト (5 tests) - POST /api/parse-task
+  - [x] Server Actionsのテスト (6 tests) - CRUD operations with mocks
+  - **成果**: Repository/LLMをモックして高速にテスト可能に
 
 - [ ] Error Handling改善
   - エラーハンドリングの統一
