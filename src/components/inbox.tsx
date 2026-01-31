@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Task } from "@/types/task";
 import { categoryConfig } from "@/lib/task-utils";
 import { Calendar, Check } from "lucide-react";
+import { TaskEditDialog } from "./task-edit-dialog";
 
 interface InboxProps {
   tasks: Task[];
@@ -57,6 +58,9 @@ export function Inbox({ tasks, onComplete, onSchedule, onUpdate }: InboxProps) {
                 </p>
               </div>
               <div className="flex gap-1">
+                {onUpdate && (
+                  <TaskEditDialog task={task} onSave={onUpdate} />
+                )}
                 <button
                   onClick={() => onSchedule(task.id)}
                   className="
