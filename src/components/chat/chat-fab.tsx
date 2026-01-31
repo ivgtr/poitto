@@ -25,7 +25,7 @@ export function ChatFab({ isOpen, onClick }: ChatFabProps) {
         flex items-center justify-center
         transition-all duration-200
         hover:shadow-xl hover:shadow-violet-500/40
-        md:hidden
+        hidden md:flex
       "
     >
       <AnimatePresence mode="wait">
