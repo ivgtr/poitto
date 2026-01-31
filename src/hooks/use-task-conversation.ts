@@ -64,7 +64,7 @@ async function fetchParseTask(
     throw new Error("Failed to parse task");
   }
 
-  const data = await response.json();
+  const { data } = await response.json();
   return data as ParseResult;
 }
 
