@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Task } from "@/types/task";
 import { categoryConfig } from "@/lib/task-utils";
 import { Calendar, Check } from "lucide-react";
-import { TaskEditDialog } from "./task-edit-dialog";
+import { TaskEditDialog } from "./task-edit";
 
 interface InboxProps {
   tasks: Task[];

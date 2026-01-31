@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { Task } from "@/types/task";
 import { categoryConfig, formatDuration, formatTime, getBubbleSize } from "@/lib/task-utils";
 import { Check } from "lucide-react";
-import { TaskEditDialog } from "./task-edit-dialog";
+import { TaskEditDialog } from "./task-edit";
 
 interface TaskBubbleProps {
   task: Task;
