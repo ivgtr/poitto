@@ -5,11 +5,18 @@
 ### Phase 3: Repository Pattern導入
 詳細: [REFACTORING_PLAN.md](./REFACTORING_PLAN.md)
 
-- [ ] `services/task-service.ts` からPrisma分離
-- [ ] Interface定義: `ports/task-repository.ts`
-- [ ] 実装: `infrastructure/persistence/prisma/task-repository.ts`
+**完了 ✅**
+- [x] Interface定義: `ports/task-repository.ts`
+- [x] 実装: `infrastructure/persistence/prisma-task-repository.ts`
+- [x] Server Actionsリファクタリング（Repository使用）
+- [x] Repository単体テスト作成（11テスト）
 
 **目的:** ビジネスロジックの単体テストでDBをモック可能にする
+
+**成果:**
+- InMemoryRepository実装による単体テスト可能に
+- Server ActionsはRepositoryの薄いラッパーに
+- テスト時にPrismaをモック可能に
 
 ---
 
@@ -50,6 +57,11 @@
   - [x] `isValidTitle()` バグ修正・テスト
   - [x] マッピング関数のテスト
   - [x] 31テスト作成・全パス
+- [x] Phase 3: Repository Pattern導入
+  - [x] TaskRepository Interface定義
+  - [x] Prisma実装
+  - [x] InMemory実装（テスト用）
+  - [x] 11テスト作成・全パス
 
 ---
 
