@@ -23,7 +23,7 @@ export function Sidebar({ activeView, onViewChange }: SidebarProps) {
   const router = useRouter();
 
   return (
-    <aside className="hidden md:flex w-64 flex-col border-r bg-white">
+    <aside className="hidden md:flex md:fixed md:top-0 md:left-0 md:h-screen w-64 flex-col border-r bg-white z-30 overflow-hidden touch-none">
       <div className="p-4 border-b">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
           poitto
