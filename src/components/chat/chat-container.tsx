@@ -27,7 +27,7 @@ export function ChatContainer({
   isLoading,
   onNewChat,
 }: ChatContainerProps) {
-  const [viewMode, setViewMode] = useState<"sidebar" | "floating">("sidebar");
+  const [viewMode, setViewMode] = useState<"sidebar" | "floating">("floating");
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const handleToggle = useCallback(() => {
