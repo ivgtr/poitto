@@ -17,7 +17,6 @@ import { toast } from "sonner";
 interface UseTaskCreationProps {
   userId: string;
   onTaskCreated: (task: Task) => void;
-  onCancel: () => void;
 }
 
 interface UseTaskCreationReturn {
@@ -30,12 +29,12 @@ interface UseTaskCreationReturn {
   selectOption: (option: string) => Promise<void>;
   cancelCreation: () => void;
   reset: () => void;
+  clearSession: () => void;
 }
 
 export function useTaskCreation({
   userId,
   onTaskCreated,
-  onCancel,
 }: UseTaskCreationProps): UseTaskCreationReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [isFirstInput, setIsFirstInput] = useState(true);
@@ -205,10 +204,16 @@ export function useTaskCreation({
 
   const cancelCreation = useCallback(() => {
     addSystemMessage("タスクの登録をキャンセルしました。", "cancelled");
-    onCancel();
-  }, [addSystemMessage, onCancel]);
+  }, [addSystemMessage]);
 
   const reset = useCallback(() => {
+    resetConversation();
+    clearMessages();
+    setIsFirstInput(true);
+    pendingTaskInfo.current = null;
+  }, [resetConversation, clearMessages]);
+
+  const clearSession = useCallback(() => {
     resetConversation();
     clearMessages();
     setIsFirstInput(true);
@@ -225,5 +230,6 @@ export function useTaskCreation({
     selectOption,
     cancelCreation,
     reset,
+    clearSession,
   };
 }

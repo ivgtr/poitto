@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Home, Calendar, MessageSquare, CheckCircle } from "lucide-react";
 
 type ViewMode = "home" | "calendar" | "chat" | "done";
@@ -17,13 +18,33 @@ const navItems = [
 ];
 
 export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
+  const router = useRouter();
+
+  const handleNavClick = (view: ViewMode) => {
+    switch (view) {
+      case "home":
+        router.push("/");
+        break;
+      case "calendar":
+        router.push("/");
+        break;
+      case "chat":
+        router.push("/chat");
+        break;
+      case "done":
+        router.push("/");
+        break;
+    }
+    onViewChange(view);
+  };
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t px-4 py-2 z-40">
       <div className="flex justify-around items-center">
         {navItems.map((item) => (
           <button
             key={item.id}
-            onClick={() => onViewChange(item.id)}
+            onClick={() => handleNavClick(item.id)}
             className={`
               flex flex-col items-center gap-1 p-2 rounded-xl
               transition-colors

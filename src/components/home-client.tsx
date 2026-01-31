@@ -9,7 +9,7 @@ import { toast } from "sonner";
 // Components
 import { Sidebar } from "./home/sidebar";
 import { MobileNav } from "./home/mobile-nav";
-import { ChatFab } from "./home/chat-fab";
+import { ChatContainer } from "@/components/chat";
 
 // Hooks - SOLID原則に従って単一責務に分割
 import { useTaskList } from "@/hooks/use-task-list";
@@ -26,10 +26,9 @@ type ViewMode = "home" | "calendar" | "chat" | "done";
 export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) {
   // UI State - View Navigation
   const [activeView, setActiveView] = useState<ViewMode>("home");
-
-  // Single Responsibility Hooks
   const [isChatOpen, setIsChatOpen] = useState(false);
 
+  // Single Responsibility Hooks
   const { tasks, completeTask, addTask } = useTaskList({ initialTasks });
 
   const {
@@ -38,21 +37,19 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
     conversation,
     sendMessage,
     selectOption,
-    cancelCreation,
-    reset: resetTaskCreation,
+    clearSession,
   } = useTaskCreation({
     userId,
     onTaskCreated: addTask,
-    onCancel: () => setIsChatOpen(false),
   });
 
-  // Handle sheet open/close with cleanup
-  const handleSheetOpenChange = useCallback((open: boolean) => {
+  const handleChatOpenChange = useCallback((open: boolean) => {
     setIsChatOpen(open);
-    if (!open) {
-      resetTaskCreation();
-    }
-  }, [resetTaskCreation]);
+  }, []);
+
+  const handleNewChat = useCallback(() => {
+    clearSession();
+  }, [clearSession]);
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
@@ -94,15 +91,16 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
         </div>
       </main>
 
-      {/* Chat FAB */}
-      <ChatFab
+      {/* Chat Container - PC only */}
+      <ChatContainer
         isOpen={isChatOpen}
-        onOpenChange={handleSheetOpenChange}
+        onOpenChange={handleChatOpenChange}
         messages={messages}
         onSendMessage={sendMessage}
-        onSelectOption={selectOption}
-        onCancel={cancelCreation}
+        onSelectOption={(option, messageId) => selectOption(option)}
+        onCancel={() => {}}
         isLoading={isLoading}
+        onNewChat={handleNewChat}
       />
 
       {/* Mobile Navigation */}
