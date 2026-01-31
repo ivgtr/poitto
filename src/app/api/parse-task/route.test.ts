@@ -31,7 +31,9 @@ describe('POST /api/parse-task', () => {
 
     expect(response.status).toBe(400)
     const data = await response.json()
-    expect(data.error).toBe('Missing input or config')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INVALID_INPUT')
+    expect(data.error.message).toBe('Missing input or config')
   })
 
   it('should return 400 when config is missing', async () => {
@@ -43,7 +45,9 @@ describe('POST /api/parse-task', () => {
 
     expect(response.status).toBe(400)
     const data = await response.json()
-    expect(data.error).toBe('Missing input or config')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBe('INVALID_INPUT')
+    expect(data.error.message).toBe('Missing input or config')
   })
 
   it('should parse task successfully with valid input', async () => {
@@ -76,7 +80,8 @@ describe('POST /api/parse-task', () => {
     expect(response.headers.get('Content-Type')).toBe('application/json; charset=utf-8')
 
     const data = await response.json()
-    expect(data).toEqual(mockResult)
+    expect(data.success).toBe(true)
+    expect(data.data).toEqual(mockResult)
     expect(parseTaskWithLLM).toHaveBeenCalledWith(
       '新宿で山田とごはん',
       { apiKey: 'test', model: 'gpt-4', provider: 'openai' },
@@ -134,7 +139,8 @@ describe('POST /api/parse-task', () => {
 
     expect(response.status).toBe(500)
     const data = await response.json()
-    expect(data.error).toBe('Parse failed')
-    expect(data.details).toContain('LLM API Error')
+    expect(data.success).toBe(false)
+    expect(data.error.code).toBeDefined()
+    expect(data.error.message).toContain('LLM API Error')
   })
 })

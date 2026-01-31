@@ -39,9 +39,13 @@
   - [x] Server Actionsのテスト (6 tests) - CRUD operations with mocks
   - **成果**: Repository/LLMをモックして高速にテスト可能に
 
-- [ ] Error Handling改善
-  - エラーハンドリングの統一
-  - ユーザーフレンドリーなエラーメッセージ整備
+- [x] Error Handling改善
+  - [x] 統一エラー型: `ErrorCode` enum + `ApplicationError` class
+  - [x] ユーザー向けメッセージ: `userMessage` (日本語)
+  - [x] Server Actions: `ActionResult<T>` 形式
+  - [x] API Routes: `{ success, data/error }` 形式
+  - [x] エラーテスト追加 (8 tests)
+  - **成果**: 型安全で一貫性のあるエラーハンドリング
 
 ### 優先度低
 

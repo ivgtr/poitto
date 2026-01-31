@@ -50,8 +50,26 @@ describe('Task Server Actions', () => {
 
       const result = await getTasks('user-1')
 
-      expect(result).toEqual(mockTasks)
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual(mockTasks)
       expect(getTasksFromDB).toHaveBeenCalledWith('user-1')
+    })
+
+    it('should return error when userId is empty', async () => {
+      const result = await getTasks('')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.error?.code).toBe('UNAUTHORIZED')
+    })
+
+    it('should return error when repository throws', async () => {
+      vi.mocked(getTasksFromDB).mockRejectedValue(new Error('DB Error'))
+
+      const result = await getTasks('user-1')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
     })
   })
 
@@ -79,7 +97,8 @@ describe('Task Server Actions', () => {
         category: 'personal',
       })
 
-      expect(result).toEqual(mockTask)
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual(mockTask)
       expect(createTaskInDB).toHaveBeenCalledWith('user-1', {
         title: '新しいタスク',
         category: 'personal',
@@ -115,7 +134,8 @@ describe('Task Server Actions', () => {
         durationMinutes: 60,
       })
 
-      expect(result.status).toBe('scheduled')
+      expect(result.success).toBe(true)
+      expect(result.data?.status).toBe('scheduled')
       expect(createTaskInDB).toHaveBeenCalledWith('user-1', {
         title: '期限付きタスク',
         category: 'work',
@@ -123,6 +143,40 @@ describe('Task Server Actions', () => {
         deadline,
         durationMinutes: 60,
       })
+    })
+
+    it('should return error when userId is empty', async () => {
+      const result = await createTask('', {
+        title: 'タスク',
+        category: 'personal',
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.error?.code).toBe('UNAUTHORIZED')
+    })
+
+    it('should return error when title is empty', async () => {
+      const result = await createTask('user-1', {
+        title: '',
+        category: 'personal',
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.error?.code).toBe('MISSING_REQUIRED_FIELD')
+    })
+
+    it('should return error when repository throws', async () => {
+      vi.mocked(createTaskInDB).mockRejectedValue(new Error('DB Error'))
+
+      const result = await createTask('user-1', {
+        title: 'タスク',
+        category: 'personal',
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
     })
   })
 
@@ -147,8 +201,9 @@ describe('Task Server Actions', () => {
 
       const result = await updateTaskStatus('1', 'done')
 
-      expect(result.status).toBe('done')
-      expect(result.completedAt).toBeInstanceOf(Date)
+      expect(result.success).toBe(true)
+      expect(result.data?.status).toBe('done')
+      expect(result.data?.completedAt).toBeInstanceOf(Date)
       expect(updateTaskStatusInDB).toHaveBeenCalledWith('1', 'done')
     })
 
@@ -172,8 +227,26 @@ describe('Task Server Actions', () => {
 
       const result = await updateTaskStatus('1', 'inbox')
 
-      expect(result.status).toBe('inbox')
-      expect(result.completedAt).toBeNull()
+      expect(result.success).toBe(true)
+      expect(result.data?.status).toBe('inbox')
+      expect(result.data?.completedAt).toBeNull()
+    })
+
+    it('should return error when taskId is empty', async () => {
+      const result = await updateTaskStatus('', 'done')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.error?.code).toBe('INVALID_INPUT')
+    })
+
+    it('should return error when repository throws', async () => {
+      vi.mocked(updateTaskStatusInDB).mockRejectedValue(new Error('DB Error'))
+
+      const result = await updateTaskStatus('1', 'done')
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
     })
   })
 
@@ -200,9 +273,37 @@ describe('Task Server Actions', () => {
 
       const result = await scheduleTask('1', scheduledAt)
 
-      expect(result.status).toBe('scheduled')
-      expect(result.scheduledAt).toEqual(scheduledAt)
+      expect(result.success).toBe(true)
+      expect(result.data?.status).toBe('scheduled')
+      expect(result.data?.scheduledAt).toEqual(scheduledAt)
       expect(scheduleTaskInDB).toHaveBeenCalledWith('1', scheduledAt)
+    })
+
+    it('should return error when taskId is empty', async () => {
+      const scheduledAt = new Date('2026-01-31T14:00:00')
+      const result = await scheduleTask('', scheduledAt)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.error?.code).toBe('INVALID_INPUT')
+    })
+
+    it('should return error when scheduledAt is missing', async () => {
+      const result = await scheduleTask('1', null as unknown as Date)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
+      expect(result.error?.code).toBe('MISSING_REQUIRED_FIELD')
+    })
+
+    it('should return error when repository throws', async () => {
+      const scheduledAt = new Date('2026-01-31T14:00:00')
+      vi.mocked(scheduleTaskInDB).mockRejectedValue(new Error('DB Error'))
+
+      const result = await scheduleTask('1', scheduledAt)
+
+      expect(result.success).toBe(false)
+      expect(result.error).toBeDefined()
     })
   })
 })

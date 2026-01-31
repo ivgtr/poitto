@@ -11,7 +11,14 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const tasks = await getTasks(session.user.id);
+  const result = await getTasks(session.user.id);
+
+  if (!result.success) {
+    // エラー時は空配列を返す（エラー表示はクライアント側で）
+    console.error("[Home] Failed to get tasks:", result.error);
+  }
+
+  const tasks = result.success && result.data ? result.data : [];
 
   return (
     <HomeClient

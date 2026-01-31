@@ -3,6 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { Task } from "@/types/task";
 import {
+  createError,
+  handleError,
+  ActionResult,
+  success,
+  failure,
+  ErrorCode,
+} from "@/lib/errors";
+import {
   createTaskInDB,
   getTasksFromDB,
   updateTaskStatusInDB,
@@ -11,33 +19,95 @@ import {
 
 /**
  * Server Actions - Repository関数のラッパー
- * データアクセス + キャッシュ制御を担当
+ * データアクセス + キャッシュ制御 + 統一エラーハンドリング
  */
 
-export async function getTasks(userId: string): Promise<Task[]> {
-  return getTasksFromDB(userId);
+export async function getTasks(userId: string): Promise<ActionResult<Task[]>> {
+  try {
+    if (!userId) {
+      return failure(createError(ErrorCode.UNAUTHORIZED, "User ID is required"));
+    }
+
+    const tasks = await getTasksFromDB(userId);
+    return success(tasks);
+  } catch (error) {
+    console.error("[getTasks] Error:", error);
+    return failure(handleError(error));
+  }
 }
 
-export async function createTask(userId: string, data: {
-  title: string;
-  category: string;
-  deadline?: Date;
-  scheduledAt?: Date;
-  durationMinutes?: number;
-}): Promise<Task> {
-  const task = await createTaskInDB(userId, data);
-  revalidatePath("/");
-  return task;
+export async function createTask(
+  userId: string,
+  data: {
+    title: string;
+    category: string;
+    deadline?: Date;
+    scheduledAt?: Date;
+    durationMinutes?: number;
+  }
+): Promise<ActionResult<Task>> {
+  try {
+    if (!userId) {
+      return failure(createError(ErrorCode.UNAUTHORIZED, "User ID is required"));
+    }
+
+    if (!data.title?.trim()) {
+      return failure(
+        createError(ErrorCode.MISSING_REQUIRED_FIELD, "Title is required")
+      );
+    }
+
+    const task = await createTaskInDB(userId, data);
+    revalidatePath("/");
+    return success(task);
+  } catch (error) {
+    console.error("[createTask] Error:", error);
+    return failure(handleError(error));
+  }
 }
 
-export async function updateTaskStatus(taskId: string, status: string): Promise<Task> {
-  const task = await updateTaskStatusInDB(taskId, status);
-  revalidatePath("/");
-  return task;
+export async function updateTaskStatus(
+  taskId: string,
+  status: string
+): Promise<ActionResult<Task>> {
+  try {
+    if (!taskId) {
+      return failure(
+        createError(ErrorCode.INVALID_INPUT, "Task ID is required")
+      );
+    }
+
+    const task = await updateTaskStatusInDB(taskId, status);
+    revalidatePath("/");
+    return success(task);
+  } catch (error) {
+    console.error("[updateTaskStatus] Error:", error);
+    return failure(handleError(error));
+  }
 }
 
-export async function scheduleTask(taskId: string, scheduledAt: Date): Promise<Task> {
-  const task = await scheduleTaskInDB(taskId, scheduledAt);
-  revalidatePath("/");
-  return task;
+export async function scheduleTask(
+  taskId: string,
+  scheduledAt: Date
+): Promise<ActionResult<Task>> {
+  try {
+    if (!taskId) {
+      return failure(
+        createError(ErrorCode.INVALID_INPUT, "Task ID is required")
+      );
+    }
+
+    if (!scheduledAt) {
+      return failure(
+        createError(ErrorCode.MISSING_REQUIRED_FIELD, "Schedule date is required")
+      );
+    }
+
+    const task = await scheduleTaskInDB(taskId, scheduledAt);
+    revalidatePath("/");
+    return success(task);
+  } catch (error) {
+    console.error("[scheduleTask] Error:", error);
+    return failure(handleError(error));
+  }
 }
