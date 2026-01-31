@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
-import { TaskInfo, ParseResult } from "@/domain/task/task-fields";
+import { ParseResultSchema, ApiResponseSchema, ParseResult } from "@/types/chat";
+import { z } from "zod";
+import { TaskInfo } from "@/domain/task/task-fields";
 import { LlmConfig } from "@/lib/local-storage";
 
 export type ConversationPhase = 
@@ -40,7 +42,6 @@ const INITIAL_STATE: ConversationState = {
   currentField: null,
 };
 
-// API経由でタスクを解析
 async function fetchParseTask(
   input: string,
   config: LlmConfig,
@@ -64,8 +65,20 @@ async function fetchParseTask(
     throw new Error("Failed to parse task");
   }
 
-  const { data } = await response.json();
-  return data as ParseResult;
+  const json = await response.json();
+  
+  // Validate API response with Zod
+  const parsedResponse = ApiResponseSchema.safeParse(json);
+  if (!parsedResponse.success) {
+    console.error("API response validation failed:", parsedResponse.error);
+    throw new Error("Invalid API response format");
+  }
+  
+  if (!parsedResponse.data.success || !parsedResponse.data.data) {
+    throw new Error(parsedResponse.data.error?.userMessage || "API returned error");
+  }
+  
+  return parsedResponse.data.data;
 }
 
 export function useTaskConversation(): UseTaskConversationReturn {
