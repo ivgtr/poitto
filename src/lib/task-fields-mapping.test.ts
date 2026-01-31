@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { mapOptionToFieldValue, parseTimeFromInput } from './task-fields'
+import { mapOptionToFieldValue, parseTimeFromInput } from '@/domain/task/task-fields'
 
 describe('mapOptionToFieldValue', () => {
   describe('category mapping', () => {

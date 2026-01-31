@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { isValidTitle, isTaskComplete, REQUIRED_FIELDS, OPTIONAL_FIELDS } from './task-fields'
-import type { TaskInfo } from './task-fields'
+import { isValidTitle, isTaskComplete, REQUIRED_FIELDS, OPTIONAL_FIELDS } from '@/domain/task/task-fields'
+import type { TaskInfo } from '@/domain/task/task-fields'
 
 describe('isValidTitle', () => {
   it('should return false for null', () => {

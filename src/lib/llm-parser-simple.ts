@@ -2,7 +2,7 @@
 
 import OpenAI from "openai";
 import { LlmConfig } from "@/lib/local-storage";
-import { TaskInfo, ParseResult, REQUIRED_FIELDS, generateQuestion, getFieldOptions } from "@/lib/task-fields";
+import { TaskInfo, ParseResult, REQUIRED_FIELDS, generateQuestion, getFieldOptions } from "@/domain/task/task-fields";
 
 export async function parseTaskWithLLM(
   input: string,

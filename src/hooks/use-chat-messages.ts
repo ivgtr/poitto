@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { ChatMessage } from "@/components/chat-interface";
-import { TaskInfo } from "@/lib/task-fields";
+import { TaskInfo } from "@/domain/task/task-fields";
 
 interface UseChatMessagesReturn {
   messages: ChatMessage[];

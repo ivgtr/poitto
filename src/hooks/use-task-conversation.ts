@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { TaskInfo, ParseResult } from "@/lib/task-fields";
+import { TaskInfo, ParseResult } from "@/domain/task/task-fields";
 import { LlmConfig } from "@/lib/local-storage";
 
 export type ConversationPhase = 

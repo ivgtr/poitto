@@ -9,7 +9,7 @@ import {
   REQUIRED_FIELDS,
   generateQuestion,
   getFieldOptions,
-} from "./task-fields";
+} from "@/domain/task/task-fields";
 
 export async function parseTaskTest(input: string, config: LlmConfig): Promise<string> {
   const openai = new OpenAI({ 

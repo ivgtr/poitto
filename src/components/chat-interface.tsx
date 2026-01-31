@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { Send, Loader2, X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { TaskInfo } from "@/lib/task-fields";
+import { TaskInfo } from "@/domain/task/task-fields";
 import { categoryConfig, formatDuration } from "@/lib/task-utils";
 
 export interface ChatMessage {

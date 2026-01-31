@@ -1,6 +1,6 @@
 import { Task } from "@/types/task";
 import { createTask, updateTaskStatus } from "@/actions/tasks";
-import { TaskInfo } from "@/lib/task-fields";
+import { TaskInfo } from "@/domain/task/task-fields";
 
 export interface TaskService {
   create(taskInfo: TaskInfo, userId: string): Promise<Task>;

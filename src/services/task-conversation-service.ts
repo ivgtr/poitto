@@ -1,4 +1,4 @@
-import { TaskInfo, mapOptionToFieldValue, getFieldOptions, generateQuestion, getNextMissingField, isTaskComplete, isValidTitle, parseTimeFromInput, createJSTScheduledAt } from "@/lib/task-fields";
+import { TaskInfo, mapOptionToFieldValue, getFieldOptions, generateQuestion, getNextMissingField, isTaskComplete, isValidTitle, parseTimeFromInput, createJSTScheduledAt } from "@/domain/task/task-fields";
 
 export interface FieldMappingResult {
   success: boolean;

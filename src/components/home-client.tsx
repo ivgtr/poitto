@@ -28,7 +28,7 @@ import {
 
 // ユーティリティ
 import { getLlmConfig } from "@/lib/local-storage";
-import { TaskInfo } from "@/lib/task-fields";
+import { TaskInfo } from "@/domain/task/task-fields";
 
 interface HomeClientProps {
   userId: string;
