@@ -98,13 +98,16 @@ export function TaskEditDialog({ task, onSave }: TaskEditDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-gray-400 hover:text-violet-600"
+        <button
+          className="
+            flex h-8 w-8 items-center justify-center rounded-full
+            bg-white/80 hover:bg-white transition-colors
+            shadow-sm text-gray-600 hover:text-violet-600
+          "
+          title="編集"
         >
           <Pencil className="h-4 w-4" />
-        </Button>
+        </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
