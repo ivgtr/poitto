@@ -69,11 +69,11 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
-      {/* PC Sidebar */}
+      {/* PC Sidebar - Fixed */}
       <Sidebar activeView={activeView} onViewChange={setActiveView} />
 
-      {/* Main Content */}
-      <main className="flex-1 flex flex-col min-h-screen md:min-h-0 relative">
+      {/* Main Content - Fixed height container */}
+      <main className="flex-1 flex flex-col md:fixed md:top-0 md:right-0 md:left-64 md:bottom-0 md:h-screen overflow-hidden">
         {/* SP Header */}
         <header className="md:hidden flex items-center justify-between bg-white border-b px-4 py-3">
           <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">
@@ -84,8 +84,8 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
           </div>
         </header>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto p-4 md:p-6 pb-24 md:pb-6">
+        {/* Content Area - Only this scrolls */}
+        <div className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6 pb-24 md:pb-6">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Inbox */}
             {tasks.filter((t) => t.status === "inbox").length > 0 && (
