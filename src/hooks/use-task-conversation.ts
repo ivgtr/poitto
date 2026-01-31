@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { ParseResultSchema, ApiResponseSchema, ParseResult } from "@/types/chat";
+import { ParseResultSchema, ApiResponseSchema, ParseResult, toTaskInfo } from "@/types/chat";
 import { z } from "zod";
 import { TaskInfo } from "@/domain/task/task-fields";
 import { LlmConfig } from "@/lib/local-storage";
@@ -149,7 +149,7 @@ export function useTaskConversation(): UseTaskConversationReturn {
       return null;
     }
 
-    const taskInfo = { ...currentTaskInfo } as TaskInfo;
+    const taskInfo = toTaskInfo({ ...currentTaskInfo });
 
     setState((prev) => ({
       ...prev,

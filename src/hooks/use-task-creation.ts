@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback } from "react";
 import { Task } from "@/types/task";
 import { TaskInfo } from "@/domain/task/task-fields";
+import { toTaskInfo } from "@/types/chat";
 import { taskService } from "@/services/task-service";
 import {
   mapSelectionToField,
@@ -71,7 +72,7 @@ export function useTaskCreation({
       const updatedTaskInfo = result?.taskInfo || conversation.currentTaskInfo;
 
       if (isComplete) {
-        pendingTaskInfo.current = updatedTaskInfo as TaskInfo;
+        pendingTaskInfo.current = updatedTaskInfo ? toTaskInfo(updatedTaskInfo) : null;
         
         if (isFirstInput) {
           setIsFirstInput(false);
@@ -84,14 +85,14 @@ export function useTaskCreation({
             addAssistantMessage({
               content: question,
               type: "question",
-              taskInfo: updatedTaskInfo as TaskInfo,
+              taskInfo: updatedTaskInfo ? toTaskInfo(updatedTaskInfo) : toTaskInfo(conversation.currentTaskInfo),
               options: [...options, "スキップ"],
             });
           } else {
             addAssistantMessage({
               content: "以下のタスクを登録しますか？",
               type: "confirmation",
-              taskInfo: updatedTaskInfo as TaskInfo,
+              taskInfo: updatedTaskInfo ? toTaskInfo(updatedTaskInfo) : toTaskInfo(conversation.currentTaskInfo),
               options: ["登録する", "登録しない"],
             });
           }
@@ -99,7 +100,7 @@ export function useTaskCreation({
           addAssistantMessage({
             content: "以下のタスクを登録しますか？",
             type: "confirmation",
-            taskInfo: updatedTaskInfo as TaskInfo,
+            taskInfo: updatedTaskInfo ? toTaskInfo(updatedTaskInfo) : toTaskInfo(conversation.currentTaskInfo),
             options: ["登録する", "登録しない"],
           });
         }
@@ -112,7 +113,7 @@ export function useTaskCreation({
         addAssistantMessage({
           content: question,
           type: "question",
-          taskInfo: updatedTaskInfo as TaskInfo,
+          taskInfo: updatedTaskInfo ? toTaskInfo(updatedTaskInfo) : toTaskInfo(conversation.currentTaskInfo),
           options: [...options],
         });
       }
@@ -146,7 +147,7 @@ export function useTaskCreation({
     }
 
     if (option === "登録する") {
-      const taskInfoToRegister = pendingTaskInfo.current || conversation.currentTaskInfo as TaskInfo;
+      const taskInfoToRegister = pendingTaskInfo.current || toTaskInfo(conversation.currentTaskInfo);
       
       if (!canRegisterTask(taskInfoToRegister)) {
         toast.error("タスク情報が不完全です");
@@ -189,14 +190,14 @@ export function useTaskCreation({
       addAssistantMessage({
         content: question,
         type: "question",
-        taskInfo: { ...conversation.currentTaskInfo, [mapping.field || ""]: mapping.value } as TaskInfo,
+        taskInfo: toTaskInfo({ ...conversation.currentTaskInfo, [mapping.field || ""]: mapping.value }),
         options: [...options],
       });
     } else {
       addAssistantMessage({
         content: "以下のタスクを登録しますか？",
         type: "confirmation",
-        taskInfo: conversation.currentTaskInfo as TaskInfo,
+        taskInfo: toTaskInfo(conversation.currentTaskInfo),
         options: ["登録する", "登録しない"],
       });
     }

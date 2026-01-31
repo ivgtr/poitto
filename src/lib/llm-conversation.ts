@@ -10,6 +10,7 @@ import {
   generateQuestion,
   getFieldOptions,
 } from "@/domain/task/task-fields";
+import { toTaskInfo } from "@/types/chat";
 
 export async function parseTaskTest(input: string, config: LlmConfig): Promise<string> {
   const openai = new OpenAI({ 
@@ -155,7 +156,7 @@ async function parseFirstInput(input: string, config: LlmConfig): Promise<ParseR
 function parseContinuation(input: string, currentTaskInfo: Partial<TaskInfo>): ParseResult {
   // 継続処理はシンプルに
   return {
-    taskInfo: currentTaskInfo as TaskInfo,
+    taskInfo: toTaskInfo(currentTaskInfo),
     missingFields: [],
     nextQuestion: null,
     clarificationOptions: ["登録する", "登録しない"],

@@ -3,6 +3,7 @@
 import OpenAI from "openai";
 import { LlmConfig } from "@/lib/local-storage";
 import { TaskInfo, ParseResult, REQUIRED_FIELDS, generateQuestion, getFieldOptions } from "@/domain/task/task-fields";
+import { toTaskInfo } from "@/types/chat";
 
 export async function parseTaskWithLLM(
   input: string,
@@ -104,7 +105,7 @@ async function parseFirstInput(input: string, config: LlmConfig): Promise<ParseR
 function parseContinuation(input: string, currentTaskInfo: Partial<TaskInfo>): ParseResult {
   // 継続はシンプルに
   return {
-    taskInfo: currentTaskInfo as TaskInfo,
+    taskInfo: toTaskInfo(currentTaskInfo),
     missingFields: [],
     nextQuestion: null,
     clarificationOptions: ["登録する", "登録しない"],
