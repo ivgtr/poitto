@@ -14,6 +14,7 @@ import { ChatContainer } from "@/components/chat";
 // Hooks - SOLID原則に従って単一責務に分割
 import { useTaskList } from "@/hooks/use-task-list";
 import { useTaskCreation } from "@/hooks/use-task-creation";
+import { handleTaskUpdate } from "@/services/task-service";
 
 interface HomeClientProps {
   userId: string;
@@ -29,7 +30,7 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Single Responsibility Hooks
-  const { tasks, completeTask, addTask } = useTaskList({ initialTasks });
+  const { tasks, completeTask, addTask, updateTask } = useTaskList({ initialTasks });
 
   const {
     isLoading,
@@ -50,6 +51,21 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
   const handleNewChat = useCallback(() => {
     clearSession();
   }, [clearSession]);
+
+  const handleEditTask = useCallback(async (taskId: string, data: {
+    title: string;
+    category: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }) => {
+    try {
+      await handleTaskUpdate(taskId, data, updateTask);
+      toast.success("タスクを更新しました");
+    } catch (error) {
+      toast.error("タスクの更新に失敗しました");
+    }
+  }, [updateTask]);
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
@@ -77,6 +93,7 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
                 tasks={tasks}
                 onComplete={completeTask}
                 onSchedule={(id) => toast.info("スケジュール機能は準備中です")}
+                onUpdate={handleEditTask}
               />
             )}
 
@@ -85,7 +102,7 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 今日のタイムライン
               </h2>
-              <Timeline tasks={tasks} onComplete={completeTask} />
+              <Timeline tasks={tasks} onComplete={completeTask} onUpdate={handleEditTask} />
             </div>
           </div>
         </div>

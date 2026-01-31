@@ -4,14 +4,22 @@ import { motion } from "framer-motion";
 import { Task } from "@/types/task";
 import { categoryConfig, formatDuration, formatTime, getBubbleSize } from "@/lib/task-utils";
 import { Check } from "lucide-react";
+import { TaskEditDialog } from "./task-edit-dialog";
 
 interface TaskBubbleProps {
   task: Task;
   onComplete: (taskId: string) => void;
+  onUpdate?: (taskId: string, data: {
+    title: string;
+    category: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }) => Promise<void>;
   isCurrent?: boolean;
 }
 
-export function TaskBubble({ task, onComplete, isCurrent }: TaskBubbleProps) {
+export function TaskBubble({ task, onComplete, onUpdate, isCurrent }: TaskBubbleProps) {
   const config = categoryConfig[task.category];
   const sizeClass = getBubbleSize(task.durationMinutes);
 
@@ -40,19 +48,24 @@ export function TaskBubble({ task, onComplete, isCurrent }: TaskBubbleProps) {
           </p>
         )}
       </div>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onComplete(task.id);
-        }}
-        className="
-          flex h-8 w-8 items-center justify-center rounded-full
-          bg-white/80 hover:bg-white transition-colors
-          shadow-sm
-        "
-      >
-        <Check className="h-4 w-4 text-gray-600" />
-      </button>
+      <div className="flex items-center gap-1">
+        {onUpdate && (
+          <TaskEditDialog task={task} onSave={onUpdate} />
+        )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onComplete(task.id);
+          }}
+          className="
+            flex h-8 w-8 items-center justify-center rounded-full
+            bg-white/80 hover:bg-white transition-colors
+            shadow-sm
+          "
+        >
+          <Check className="h-4 w-4 text-gray-600" />
+        </button>
+      </div>
     </motion.div>
   );
 }

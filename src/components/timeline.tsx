@@ -8,9 +8,16 @@ import { formatTime } from "@/lib/task-utils";
 interface TimelineProps {
   tasks: Task[];
   onComplete: (taskId: string) => void;
+  onUpdate?: (taskId: string, data: {
+    title: string;
+    category: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }) => Promise<void>;
 }
 
-export function Timeline({ tasks, onComplete }: TimelineProps) {
+export function Timeline({ tasks, onComplete, onUpdate }: TimelineProps) {
   const scheduledTasks = tasks.filter((t) => t.status === "scheduled" && t.scheduledAt);
   const currentHour = new Date().getHours();
 
@@ -56,6 +63,7 @@ export function Timeline({ tasks, onComplete }: TimelineProps) {
                   key={task.id}
                   task={task}
                   onComplete={onComplete}
+                  onUpdate={onUpdate}
                   isCurrent={isCurrentHour}
                 />
               ))}

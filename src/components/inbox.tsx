@@ -9,9 +9,16 @@ interface InboxProps {
   tasks: Task[];
   onComplete: (taskId: string) => void;
   onSchedule: (taskId: string) => void;
+  onUpdate?: (taskId: string, data: {
+    title: string;
+    category: string;
+    deadline?: Date | null;
+    scheduledAt?: Date | null;
+    durationMinutes?: number | null;
+  }) => Promise<void>;
 }
 
-export function Inbox({ tasks, onComplete, onSchedule }: InboxProps) {
+export function Inbox({ tasks, onComplete, onSchedule, onUpdate }: InboxProps) {
   const inboxTasks = tasks.filter((t) => t.status === "inbox");
 
   if (inboxTasks.length === 0) {
