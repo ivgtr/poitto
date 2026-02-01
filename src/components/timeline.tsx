@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Task } from "@/types/task";
 import { TaskBubble } from "./task-bubble";
-import { formatTime } from "@/lib/task-utils";
+
 
 interface TimelineProps {
   tasks: Task[];

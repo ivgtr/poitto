@@ -24,7 +24,7 @@ export function useTaskList({ initialTasks }: UseTaskListProps): UseTaskListRetu
       await taskService.complete(taskId);
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
       toast.success("タスクを完了しました");
-    } catch (error) {
+    } catch {
       toast.error("エラーが発生しました");
     }
   }, []);

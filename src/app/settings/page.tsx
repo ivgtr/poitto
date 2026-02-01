@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ArrowLeft, Eye, EyeOff, Key, Trash2, ExternalLink } from "lucide-react";
@@ -30,36 +30,25 @@ import {
 export default function SettingsPage() {
   const router = useRouter();
   const [showKey, setShowKey] = useState(false);
-  const [hasKey, setHasKey] = useState(false);
-  const [activeTab, setActiveTab] = useState<LlmProvider>("openrouter");
 
-  const [apiKey, setApiKeyState] = useState("");
-  const [model, setModel] = useState("");
-  const [useCustomModel, setUseCustomModelState] = useState(false);
-  const [customModelName, setCustomModelName] = useState("");
+  // Initialize state from localStorage on component mount (safe for SSR since localStorage is only accessed during render)
+  const initialKey = getApiKey();
+  const initialProvider = getLlmProvider();
+  const initialModel = getLlmModel();
+  const initialUseCustom = getUseCustomModel();
 
-  useEffect(() => {
-    const key = getApiKey();
-    const provider = getLlmProvider();
-    const savedModel = getLlmModel();
-    const savedUseCustom = getUseCustomModel();
-    
-    if (key) {
-      setHasKey(true);
-      setApiKeyState(key);
-    }
-    
-    setActiveTab(provider);
-    setUseCustomModelState(savedUseCustom);
-    
-    if (savedUseCustom) {
-      // カスタムモデルの場合、保存されたモデル名をカスタム名として使用
-      setCustomModelName(savedModel);
-      setModel(savedModel);
-    } else {
-      setModel(savedModel || (provider === "openai" ? "gpt-4o-mini" : "openai/gpt-4o-mini"));
-    }
-  }, []);
+  const [activeTab, setActiveTab] = useState<LlmProvider>(initialProvider);
+  const [hasKey, setHasKey] = useState(!!initialKey);
+  const [apiKey, setApiKeyState] = useState(initialKey || "");
+  const [useCustomModel, setUseCustomModelState] = useState(initialUseCustom);
+  const [customModelName, setCustomModelName] = useState(
+    initialUseCustom ? initialModel : ""
+  );
+  const [model, setModel] = useState(
+    initialUseCustom
+      ? initialModel
+      : initialModel || (initialProvider === "openai" ? "gpt-4o-mini" : "openai/gpt-4o-mini")
+  );
 
   const handleSave = () => {
     if (!apiKey.trim()) {

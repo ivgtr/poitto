@@ -15,7 +15,7 @@ interface ChatPageClientProps {
   userName: string;
 }
 
-export function ChatPageClient({ userId, userName }: ChatPageClientProps) {
+export function ChatPageClient({ userId }: ChatPageClientProps) {
   const router = useRouter();
   const [activeView, setActiveView] = useState<"home" | "calendar" | "chat" | "done">("chat");
 

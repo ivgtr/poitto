@@ -18,13 +18,13 @@ import { handleTaskUpdate } from "@/services/task-service";
 
 interface HomeClientProps {
   userId: string;
-  userName: string;
+  userName?: string;
   initialTasks: Task[];
 }
 
 type ViewMode = "home" | "calendar" | "chat" | "done";
 
-export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) {
+export function HomeClient({ userId, initialTasks }: HomeClientProps) {
   // UI State - View Navigation
   const [activeView, setActiveView] = useState<ViewMode>("home");
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -35,7 +35,6 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
   const {
     isLoading,
     messages,
-    conversation,
     sendMessage,
     selectOption,
     clearSession,
@@ -62,7 +61,7 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
     try {
       await handleTaskUpdate(taskId, data, updateTask);
       toast.success("タスクを更新しました");
-    } catch (error) {
+    } catch {
       toast.error("タスクの更新に失敗しました");
     }
   }, [updateTask]);
@@ -92,7 +91,7 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
               <Inbox
                 tasks={tasks}
                 onComplete={completeTask}
-                onSchedule={(id) => toast.info("スケジュール機能は準備中です")}
+                onSchedule={() => toast.info("スケジュール機能は準備中です")}
                 onUpdate={handleEditTask}
               />
             )}
@@ -114,7 +113,7 @@ export function HomeClient({ userId, userName, initialTasks }: HomeClientProps) 
         onOpenChange={handleChatOpenChange}
         messages={messages}
         onSendMessage={sendMessage}
-        onSelectOption={(option, messageId) => selectOption(option)}
+        onSelectOption={(option) => selectOption(option)}
         onCancel={() => {}}
         isLoading={isLoading}
         onNewChat={handleNewChat}

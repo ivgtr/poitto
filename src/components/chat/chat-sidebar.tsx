@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChatHeader } from "./chat-header";
-import { ChatMessage } from "@/components/chat-interface";
+
 import { cn } from "@/lib/utils";
 
 interface ChatSidebarProps {

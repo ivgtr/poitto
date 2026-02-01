@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { Task } from "@/types/task";
-import { categoryConfig, formatDuration, formatTime, getBubbleSize } from "@/lib/task-utils";
+import { categoryConfig, formatDuration, getBubbleSize } from "@/lib/task-utils";
 import { Check } from "lucide-react";
 import { TaskEditDialog } from "./task-edit";
 

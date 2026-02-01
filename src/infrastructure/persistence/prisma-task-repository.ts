@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Task } from "@/types/task";
 import { mapPrismaTasksToTasks, mapPrismaTaskToTask } from "@/lib/task-mapper";
 
@@ -90,7 +91,7 @@ export async function updateTaskInDB(
     durationMinutes?: number | null;
   }
 ): Promise<Task> {
-  const updateData: any = {};
+  const updateData: Prisma.TaskUpdateInput = {};
 
   if (data.title !== undefined) {
     const trimmedTitle = data.title.trim();

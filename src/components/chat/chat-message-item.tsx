@@ -72,12 +72,13 @@ export function ChatMessageItem({
                       ).toLocaleDateString("ja-JP")}
                     </p>
                   )}
-                  {message.taskInfo.scheduledAt && (
+                  {message.taskInfo.scheduledDate && (
                     <p>
                       予定:{" "}
                       {new Date(
-                        message.taskInfo.scheduledAt
-                      ).toLocaleString("ja-JP")}
+                        message.taskInfo.scheduledDate + (message.taskInfo.scheduledTime ? `T${message.taskInfo.scheduledTime}:00` : "T00:00:00")
+                      ).toLocaleDateString("ja-JP")}
+                      {message.taskInfo.scheduledTime && ` ${message.taskInfo.scheduledTime}`}
                     </p>
                   )}
                   {message.taskInfo.durationMinutes && (

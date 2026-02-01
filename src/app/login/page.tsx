@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Github, Chrome } from "lucide-react";
 import { toast } from "sonner";
@@ -11,13 +10,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState<string | null>(null);
-  const router = useRouter();
 
   const handleSignIn = async (provider: string) => {
     setIsLoading(provider);
     try {
       await signIn(provider, { callbackUrl: "/" });
-    } catch (error) {
+    } catch {
       toast.error("ログインに失敗しました");
       setIsLoading(null);
     }
