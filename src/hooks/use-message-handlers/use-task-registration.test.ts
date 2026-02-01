@@ -3,6 +3,9 @@ import { renderHook } from "@testing-library/react";
 import { useTaskRegistration } from "./use-task-registration";
 import * as conversationService from "@/services/task-conversation-service";
 import * as taskService from "@/services/task-service";
+import { TaskInfo } from "@/domain/task/task-fields";
+import { Task } from "@/types/task";
+import { MessageType, SystemMessageType } from "./types";
 
 vi.mock("@/services/task-conversation-service", () => ({
   mapSelectionToField: vi.fn(),
@@ -26,16 +29,22 @@ vi.mock("sonner", () => ({
 describe("useTaskRegistration", () => {
   const mockDeps = {
     userId: "user-123",
-    addAssistantMessage: vi.fn(),
-    addSystemMessage: vi.fn(),
-    updateField: vi.fn(),
-    setCurrentField: vi.fn(),
-    reset: vi.fn(),
-    onTaskCreated: vi.fn(),
-    pendingTaskInfo: { current: null },
+    addAssistantMessage: vi.fn<(data: {
+      content: string;
+      type: MessageType;
+      taskInfo?: TaskInfo;
+      options?: string[];
+      isComplete?: boolean;
+    }) => void>(),
+    addSystemMessage: vi.fn<(content: string, type: SystemMessageType) => void>(),
+    updateField: vi.fn<(field: keyof TaskInfo, value: TaskInfo[keyof TaskInfo]) => void>(),
+    setCurrentField: vi.fn<(field: string | null) => void>(),
+    reset: vi.fn<() => void>(),
+    onTaskCreated: vi.fn<(task: Task) => void>(),
+    pendingTaskInfo: { current: null as TaskInfo | null },
     conversation: {
-      currentField: null,
-      currentTaskInfo: {},
+      currentField: null as string | null,
+      currentTaskInfo: {} as Partial<TaskInfo>,
     },
   };
 

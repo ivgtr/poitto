@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest'
-import type { Task } from '@/types/task'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import type { Task, Category, TaskStatus } from '@/types/task'
 import type { TaskRepository } from '@/ports/task-repository'
 
 // モック用のインメモリリポジトリ関数
@@ -25,11 +25,11 @@ function createInMemoryRepository(): TaskRepository {
         id: `task-${idCounter++}`,
         userId,
         title: trimmedTitle,
-        category: data.category,
+        category: data.category as Category,
         deadline: data.deadline || null,
         scheduledAt: data.scheduledAt || null,
         durationMinutes: data.durationMinutes || null,
-        status: data.scheduledAt ? 'scheduled' : 'inbox',
+        status: (data.scheduledAt ? 'scheduled' : 'inbox') as TaskStatus,
         rawInput: data.rawInput || trimmedTitle,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -57,7 +57,7 @@ function createInMemoryRepository(): TaskRepository {
 
       const updated: Task = {
         ...task,
-        status,
+        status: status as TaskStatus,
         completedAt: status === 'done' ? new Date() : null,
         updatedAt: new Date(),
       }
@@ -96,7 +96,7 @@ describe('TaskRepository Interface', () => {
     it('should create a task with valid data', async () => {
       const task = await repository.create('user-1', {
         title: '新宿で山田とごはん',
-        category: 'personal',
+        category: 'personal' as Category,
       })
 
       expect(task.title).toBe('新宿で山田とごはん')
@@ -119,13 +119,13 @@ describe('TaskRepository Interface', () => {
 
     it('should throw error when title is empty', async () => {
       await expect(
-        repository.create('user-1', { title: '', category: 'personal' })
+        repository.create('user-1', { title: '', category: 'personal' as Category })
       ).rejects.toThrow('タスクのタイトルが必要です')
     })
 
     it('should throw error when title is whitespace only', async () => {
       await expect(
-        repository.create('user-1', { title: '   ', category: 'personal' })
+        repository.create('user-1', { title: '   ', category: 'personal' as Category })
       ).rejects.toThrow('タスクのタイトルが必要です')
     })
 
@@ -141,8 +141,8 @@ describe('TaskRepository Interface', () => {
 
   describe('getTasks', () => {
     it('should return tasks for specific user', async () => {
-      await repository.create('user-1', { title: 'タスク1', category: 'work' })
-      await repository.create('user-2', { title: 'タスク2', category: 'personal' })
+      await repository.create('user-1', { title: 'タスク1', category: 'work' as Category })
+      await repository.create('user-2', { title: 'タスク2', category: 'personal' as Category })
 
       const tasks = await repository.getTasks('user-1')
 

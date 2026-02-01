@@ -135,6 +135,7 @@ describe('mapOptionToFieldValue', () => {
 
   describe('unknown fields', () => {
     it('should return null for unknown field names', () => {
+      // @ts-expect-error - Testing runtime behavior with invalid field name
       expect(mapOptionToFieldValue('value', 'unknown')).toEqual({ value: null, success: false })
     })
   })

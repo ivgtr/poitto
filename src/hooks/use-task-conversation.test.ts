@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach, Mock } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useTaskConversation } from './use-task-conversation'
 import { ParseResult } from '@/types/chat'
+import { createTestLlmConfig } from '@/test/test-utils'
+
+interface ProcessResult {
+  result: ParseResult | null
+  isComplete: boolean
+  nextField?: string | null
+}
 
 // Mock global fetch
 global.fetch = vi.fn()
@@ -65,18 +72,14 @@ describe('useTaskConversation', () => {
         }),
       })
 
-      let response
+      let response!: ProcessResult
       await act(async () => {
-        response = await result.current.processInput('テストタスク', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        response = await result.current.processInput('テストタスク', createTestLlmConfig())
       })
 
-      expect(response.result).toEqual(mockParseResult)
-      expect(response.nextField).toBe('deadline')
-      expect(response.isComplete).toBe(false)
+      expect(response!.result).toEqual(mockParseResult)
+      expect(response!.nextField).toBe('deadline')
+      expect(response!.isComplete).toBe(false)
       expect(result.current.state.currentTaskInfo).toEqual(mockParseResult.taskInfo)
       expect(result.current.state.context).toBe('テストコンテキスト')
     })
@@ -86,18 +89,14 @@ describe('useTaskConversation', () => {
 
       ;(fetch as Mock).mockRejectedValueOnce(new Error('Network error'))
 
-      let response
+      let response!: ProcessResult
       await act(async () => {
-        response = await result.current.processInput('テスト', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        response = await result.current.processInput('テスト', createTestLlmConfig())
       })
 
-      expect(response.result).toBeNull()
-      expect(response.nextField).toBeNull()
-      expect(response.isComplete).toBe(false)
+      expect(response!.result).toBeNull()
+      expect(response!.nextField).toBeNull()
+      expect(response!.isComplete).toBe(false)
       expect(result.current.state.currentTaskInfo).toEqual({})
     })
 
@@ -126,17 +125,13 @@ describe('useTaskConversation', () => {
         }),
       })
 
-      let response
+      let response!: ProcessResult
       await act(async () => {
-        response = await result.current.processInput('完全なタスク', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        response = await result.current.processInput('完全なタスク', createTestLlmConfig())
       })
 
-      expect(response.isComplete).toBe(true)
-      expect(response.nextField).toBeNull()
+      expect(response!.isComplete).toBe(true)
+      expect(response!.nextField).toBeNull()
     })
 
     it('should handle non-ok response', async () => {
@@ -147,13 +142,9 @@ describe('useTaskConversation', () => {
         status: 500,
       })
 
-      let response
+      let response!: ProcessResult
       await act(async () => {
-        response = await result.current.processInput('テスト', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        response = await result.current.processInput('テスト', createTestLlmConfig())
       })
 
       expect(response.result).toBeNull()
@@ -171,16 +162,12 @@ describe('useTaskConversation', () => {
         }),
       })
 
-      let response
+      let response!: ProcessResult
       await act(async () => {
-        response = await result.current.processInput('テスト', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        response = await result.current.processInput('テスト', createTestLlmConfig())
       })
 
-      expect(response.result).toBeNull()
+      expect(response!.result).toBeNull()
     })
   })
 
@@ -457,11 +444,7 @@ describe('useTaskConversation', () => {
       })
 
       await act(async () => {
-        await result.current.processInput('テストタスク', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        await result.current.processInput('テストタスク', createTestLlmConfig())
       })
 
       // Update fields based on user selections
@@ -501,11 +484,7 @@ describe('useTaskConversation', () => {
       })
 
       await act(async () => {
-        await result.current.processInput('最初の入力', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        await result.current.processInput('最初の入力', createTestLlmConfig())
       })
 
       expect(result.current.state.currentTaskInfo.title).toBe('テストタスク')
@@ -525,11 +504,7 @@ describe('useTaskConversation', () => {
       })
 
       await act(async () => {
-        await result.current.processInput('追加情報', {
-          provider: 'openai',
-          model: 'gpt-4o-mini',
-          apiKey: 'test-key',
-        })
+        await result.current.processInput('追加情報', createTestLlmConfig())
       })
 
       expect(result.current.state.context).toBe('更新されたコンテキスト')

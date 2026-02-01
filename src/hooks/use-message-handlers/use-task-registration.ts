@@ -140,13 +140,18 @@ export function useTaskRegistration(deps: UseTaskRegistrationDeps) {
         const taskInfoToRegister =
           pendingTaskInfo.current || toTaskInfo(conversation.currentTaskInfo);
 
-        return registerTask(taskInfoToRegister, () => {
+        const result = await registerTask(taskInfoToRegister, () => {
           if (!taskInfoToRegister.title || !taskInfoToRegister.category) {
             toast.error("タスクのタイトルとカテゴリが必要です");
             return false;
           }
           return true;
         });
+
+        if (result.type === "error") {
+          return { type: "send_message", message: "登録に失敗しました" };
+        }
+        return result;
       }
 
       // 通常登録処理
@@ -154,13 +159,18 @@ export function useTaskRegistration(deps: UseTaskRegistrationDeps) {
         const taskInfoToRegister =
           pendingTaskInfo.current || toTaskInfo(conversation.currentTaskInfo);
 
-        return registerTask(taskInfoToRegister, () => {
+        const result = await registerTask(taskInfoToRegister, () => {
           if (!canRegisterTask(taskInfoToRegister)) {
             toast.error("タスク情報が不完全です");
             return false;
           }
           return true;
         });
+
+        if (result.type === "error") {
+          return { type: "send_message", message: "登録に失敗しました" };
+        }
+        return result;
       }
 
       // 無効なマッピングの場合はメッセージとして送信
