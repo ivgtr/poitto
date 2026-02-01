@@ -1,5 +1,5 @@
 export const REQUIRED_FIELDS = ["title", "category"];
-export const OPTIONAL_FIELDS = ["deadline", "scheduledAt", "durationMinutes"];
+export const OPTIONAL_FIELDS = ["deadline", "scheduledDate", "scheduledTime", "durationMinutes"];
 
 export const INVALID_TITLES = [null, "", "タイトル未定", "（タイトル未定）", "タイトルなし"];
 
