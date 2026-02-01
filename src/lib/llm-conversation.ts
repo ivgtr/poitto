@@ -10,6 +10,7 @@ import {
   generateQuestion,
   getFieldOptions,
 } from "@/domain/task/task-fields";
+import { normalizeDateTime } from "@/domain/task/time-utils";
 import { toTaskInfo } from "@/types/chat";
 
 export async function parseTaskTest(input: string, config: LlmConfig): Promise<string> {
@@ -91,22 +92,25 @@ async function parseFirstInput(input: string, config: LlmConfig): Promise<ParseR
 
 【抽出項目】
 1. title: タスク内容（時間表現を除く純粋な内容）
-2. scheduledAt: 実行予定時刻（ISO8601、JST+09:00、あれば）
+2. scheduledDate: 実行予定日（YYYY-MM-DD、あれば）
+3. scheduledTime: 実行予定時刻（HH:mmまたは時間帯、あれば）
 3. deadline: 期限（ISO8601、あれば）
 4. category: カテゴリ（shopping/reply/work/personal/other、推測できれば）
 
 【現在時刻】${new Date().toLocaleString("ja-JP", { timeZone: "Asia/Tokyo" })}
 
 【出力形式】
+必ず以下のJSONのみを出力：
 {
   "title": "タスク内容",
-  "scheduledAt": "2026-01-31T15:00:00+09:00またはnull",
-  "deadline": "2026-01-31T23:59:00+09:00またはnull",
+  "scheduledDate": "YYYY-MM-DDまたはnull",
+  "scheduledTime": "HH:mmまたは時間帯(morning/noon/afternoon/evening)またはnull",
+  "deadline": "YYYY-MM-DDまたはnull",
   "category": "personalまたはnull"
 }
 
-重要：titleは必ず具体的な内容にしてください。「（タイトル未定）」は使わないでください。
-時間表現はscheduledAt/deadlineに、残りがtitleになります。`;
+重要：titleは必ず具体的な内容に。「（タイトル未定）」は使わない。
+時間表現はscheduledDate/scheduledTime/deadlineに、残りがtitle。`;
 
   const response = await openai.chat.completions.create({
     model: config.model,
@@ -132,11 +136,18 @@ async function parseFirstInput(input: string, config: LlmConfig): Promise<ParseR
   
   const parsed = JSON.parse(content);
   
+  // LLMレスポンスから日時を抽出
+  const deadline = normalizeDateTime(parsed.deadline);
+  const scheduled = normalizeDateTime(parsed.scheduledAt || parsed.scheduledDate);
+  const scheduledDate = scheduled ? scheduled.split('T')[0] : null;
+  const scheduledTime = scheduled && scheduled.includes('T') ? scheduled.split('T')[1].slice(0, 5) : null;
+  
   const taskInfo: TaskInfo = {
     title: typeof parsed.title === "string" && parsed.title.trim() ? parsed.title.trim() : input,
     category: ["shopping", "reply", "work", "personal", "other"].includes(parsed.category) ? parsed.category : null,
-    scheduledAt: typeof parsed.scheduledAt === "string" ? parsed.scheduledAt : null,
-    deadline: typeof parsed.deadline === "string" ? parsed.deadline : null,
+    deadline,
+    scheduledDate,
+    scheduledTime,
     durationMinutes: null,
   };
 
@@ -172,7 +183,8 @@ function createFallbackResult(input: string): ParseResult {
       title: input,
       category: "personal",
       deadline: null,
-      scheduledAt: null,
+      scheduledDate: null,
+      scheduledTime: null,
       durationMinutes: null,
     },
     missingFields: [],

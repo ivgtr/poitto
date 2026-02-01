@@ -2,8 +2,27 @@
 
 import { Task } from "@/types/task";
 import { createTask, updateTaskStatus, updateTask } from "@/actions/tasks";
-import { TaskInfo } from "@/domain/task/task-fields";
+import { TaskInfo, DEFAULT_TIME_SLOTS } from "@/domain/task/task-fields";
 import { AppError } from "@/lib/errors";
+
+/**
+ * scheduledDateとscheduledTimeをDateオブジェクトに結合
+ * 時刻がない場合はnullを返す（inbox用）
+ */
+function combineScheduledDateTime(
+  scheduledDate: string | null,
+  scheduledTime: string | null
+): Date | undefined {
+  if (!scheduledDate) return undefined;
+  
+  // 時刻がない場合はnull（inboxに表示）
+  if (!scheduledTime) return undefined;
+  
+  // 時間帯の場合はデフォルト時刻に変換
+  const actualTime = DEFAULT_TIME_SLOTS[scheduledTime as keyof typeof DEFAULT_TIME_SLOTS] || scheduledTime;
+  
+  return new Date(`${scheduledDate}T${actualTime}:00+09:00`);
+}
 
 export interface TaskService {
   create(taskInfo: TaskInfo, userId: string): Promise<Task>;
@@ -33,7 +52,7 @@ export const taskService: TaskService = {
       title: taskInfo.title!,
       category: taskInfo.category || "other",
       deadline: taskInfo.deadline ? new Date(taskInfo.deadline) : undefined,
-      scheduledAt: taskInfo.scheduledAt ? new Date(taskInfo.scheduledAt) : undefined,
+      scheduledAt: combineScheduledDateTime(taskInfo.scheduledDate, taskInfo.scheduledTime),
       durationMinutes: taskInfo.durationMinutes || undefined,
     });
     

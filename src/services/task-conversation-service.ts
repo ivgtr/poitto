@@ -1,16 +1,18 @@
-import { TaskInfo, mapOptionToFieldValue, getFieldOptions, generateQuestion, getNextMissingField, isTaskComplete, isValidTitle, parseTimeFromInput, createJSTScheduledAt } from "@/domain/task/task-fields";
+import { TaskInfo, mapOptionToFieldValue, getFieldOptions, generateQuestion, getNextMissingField, isTaskComplete, hasMoreOptions, parseTimeFromInput } from "@/domain/task/task-fields";
+import { isMappableField } from "@/domain/task/mapping";
 
 export interface FieldMappingResult {
   success: boolean;
   field: keyof TaskInfo | null;
   value: TaskInfo[keyof TaskInfo] | null;
   nextField: string | null;
+  action?: "cancel" | "register_anyway";
 }
 
 // 型ガード: 文字列がTaskInfoのキーかどうかをチェック
 function isTaskInfoKey(field: string | null): field is keyof TaskInfo {
   if (!field) return false;
-  const validKeys: (keyof TaskInfo)[] = ["title", "category", "deadline", "scheduledAt", "durationMinutes"];
+  const validKeys: (keyof TaskInfo)[] = ["title", "category", "deadline", "scheduledDate", "scheduledTime", "durationMinutes"];
   return validKeys.includes(field as keyof TaskInfo);
 }
 
@@ -23,7 +25,8 @@ function isValidTaskValue<K extends keyof TaskInfo>(
     case "title":
     case "category":
     case "deadline":
-    case "scheduledAt":
+    case "scheduledDate":
+    case "scheduledTime":
       return value === null || typeof value === "string";
     case "durationMinutes":
       return value === null || typeof value === "number";
@@ -40,13 +43,14 @@ export function mapSelectionToField(
   currentField: string | null,
   currentTaskInfo: Partial<TaskInfo>
 ): FieldMappingResult {
-  // 「登録しない」の場合
-  if (option === "登録しない") {
+  // 「登録しない」または「とりあえず登録」の場合
+  if (option === "登録しない" || option === "とりあえず登録") {
     return {
       success: false,
       field: null,
       value: null,
       nextField: null,
+      action: option === "とりあえず登録" ? "register_anyway" : "cancel",
     };
   }
 
@@ -69,25 +73,56 @@ export function mapSelectionToField(
     };
   }
 
-  // 時刻入力の特別処理（scheduledAtフィールド）
-  if (currentField === "scheduledAt") {
-    const time = parseTimeFromInput(option);
-    if (time) {
-      const scheduledAt = createJSTScheduledAt(time, 1);
-      const updatedTaskInfo = { ...currentTaskInfo, scheduledAt };
+  // scheduledDateフィールドの処理
+  if (currentField === "scheduledDate") {
+    const { value, success } = mapOptionToFieldValue(option, "scheduledDate");
+    if (success && isValidTaskValue("scheduledDate", value)) {
+      const updatedTaskInfo = { ...currentTaskInfo, scheduledDate: value };
       const nextField = getNextMissingField(updatedTaskInfo, false);
       
       return {
         success: true,
-        field: "scheduledAt",
-        value: scheduledAt,
+        field: "scheduledDate",
+        value,
+        nextField,
+      };
+    }
+  }
+
+  // scheduledTimeフィールドの処理（時刻入力または選択肢）
+  if (currentField === "scheduledTime") {
+    // First try to parse as a specific time (e.g., "14:30" or "3時")
+    const parsedTime = parseTimeFromInput(option);
+    if (parsedTime) {
+      const timeValue = `${String(parsedTime.hour).padStart(2, "0")}:${String(parsedTime.minute).padStart(2, "0")}`;
+      const updatedTaskInfo = { ...currentTaskInfo, scheduledTime: timeValue };
+      const nextField = getNextMissingField(updatedTaskInfo, false);
+      
+      return {
+        success: true,
+        field: "scheduledTime",
+        value: timeValue,
+        nextField,
+      };
+    }
+    
+    // Try to map as an option (e.g., "午前中" -> "morning")
+    const { value, success } = mapOptionToFieldValue(option, "scheduledTime");
+    if (success && isValidTaskValue("scheduledTime", value)) {
+      const updatedTaskInfo = { ...currentTaskInfo, scheduledTime: value };
+      const nextField = getNextMissingField(updatedTaskInfo, false);
+      
+      return {
+        success: true,
+        field: "scheduledTime",
+        value,
         nextField,
       };
     }
   }
 
   // 通常の選択肢マッピング
-  if (currentField && isTaskInfoKey(currentField)) {
+  if (currentField && isMappableField(currentField)) {
     const { value, success } = mapOptionToFieldValue(option, currentField);
     
     if (success && isValidTaskValue(currentField, value)) {
@@ -143,18 +178,49 @@ export function parseChatInput(
     return { type: "free_text" };
   }
 
-  // scheduledAtフィールドで時刻入力の可能性をチェック
-  if (currentField === "scheduledAt") {
-    const time = parseTimeFromInput(input);
-    if (time) {
-      const scheduledAt = createJSTScheduledAt(time, 1);
-      const updatedTaskInfo = { ...currentTaskInfo, scheduledAt };
+  // scheduledDateフィールドで日付入力の可能性をチェック
+  if (currentField === "scheduledDate") {
+    const { value, success } = mapOptionToFieldValue(input, "scheduledDate");
+    if (success) {
+      const updatedTaskInfo = { ...currentTaskInfo, scheduledDate: value as string | null };
+      const nextField = getNextMissingField(updatedTaskInfo, false);
+      
+      return {
+        type: "selection",
+        field: "scheduledDate",
+        value: value as string | null,
+        nextField,
+      };
+    }
+  }
+
+  // scheduledTimeフィールドで時刻入力の可能性をチェック
+  if (currentField === "scheduledTime") {
+    // First try to parse as a specific time (e.g., "14:30" or "3時")
+    const parsedTime = parseTimeFromInput(input);
+    if (parsedTime) {
+      const timeValue = `${String(parsedTime.hour).padStart(2, "0")}:${String(parsedTime.minute).padStart(2, "0")}`;
+      const updatedTaskInfo = { ...currentTaskInfo, scheduledTime: timeValue };
       const nextField = getNextMissingField(updatedTaskInfo, false);
       
       return {
         type: "time_input",
-        field: "scheduledAt",
-        value: scheduledAt,
+        field: "scheduledTime",
+        value: timeValue,
+        nextField,
+      };
+    }
+    
+    // Try to map as an option (e.g., "午前中" -> "morning")
+    const { value, success } = mapOptionToFieldValue(input, "scheduledTime");
+    if (success) {
+      const updatedTaskInfo = { ...currentTaskInfo, scheduledTime: value };
+      const nextField = getNextMissingField(updatedTaskInfo, false);
+      
+      return {
+        type: "selection",
+        field: "scheduledTime",
+        value,
         nextField,
       };
     }
@@ -166,32 +232,39 @@ export function parseChatInput(
 
 /**
  * 次の質問と選択肢を生成
+ * @param showAllOptions 全ての選択肢を表示するか（falseの場合はprimaryOptionsのみ）
  */
 export function generateNextQuestion(
   taskInfo: Partial<TaskInfo>,
-  isInitial: boolean = false
+  isInitial: boolean = false,
+  showAllOptions: boolean = false
 ): {
   field: string | null;
   question: string;
   options: string[];
+  hasMoreOptions: boolean;
 } {
   const nextField = getNextMissingField(taskInfo, isInitial);
-  
+
   if (!nextField) {
     return {
       field: null,
       question: "",
       options: [],
+      hasMoreOptions: false,
     };
   }
 
-  const fieldOptions = getFieldOptions(nextField);
+  // プログレッシブ開示: primaryOptionsか全オプションかを選択
+  const fieldOptions = getFieldOptions(nextField, showAllOptions);
   const question = generateQuestion(nextField) || `${nextField}を教えてください`;
+  const hasMore = hasMoreOptions(nextField) && !showAllOptions;
 
   return {
     field: nextField,
     question,
-    options: [...fieldOptions, "登録しない"],
+    options: [...fieldOptions, "スキップ", "とりあえず登録"],
+    hasMoreOptions: hasMore,
   };
 }
 

@@ -5,7 +5,8 @@ export const TaskInfoSchema = z.object({
   title: z.string().nullable(),
   category: z.string().nullable(),
   deadline: z.string().nullable(),
-  scheduledAt: z.string().nullable(),
+  scheduledDate: z.string().nullable(),
+  scheduledTime: z.string().nullable(),
   durationMinutes: z.number().nullable(),
 });
 

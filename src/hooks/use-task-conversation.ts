@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-import { ParseResultSchema, ApiResponseSchema, ParseResult, toTaskInfo } from "@/types/chat";
-import { z } from "zod";
+import { ApiResponseSchema, ParseResult, toTaskInfo } from "@/types/chat";
 import { TaskInfo } from "@/domain/task/task-fields";
 import { LlmConfig } from "@/lib/local-storage";
 
@@ -23,6 +22,7 @@ interface UseTaskConversationReturn {
   isActive: boolean;
   startConversation: () => void;
   updateField: (field: keyof TaskInfo, value: TaskInfo[keyof TaskInfo]) => void;
+  setCurrentField: (field: string | null) => void;
   processInput: (
     input: string,
     config: LlmConfig
@@ -101,6 +101,13 @@ export function useTaskConversation(): UseTaskConversationReturn {
     }));
   }, []);
 
+  const setCurrentField = useCallback((field: string | null) => {
+    setState((prev) => ({
+      ...prev,
+      currentField: field,
+    }));
+  }, []);
+
   const processInput = useCallback(async (
     input: string,
     config: LlmConfig
@@ -171,6 +178,7 @@ export function useTaskConversation(): UseTaskConversationReturn {
     isActive: state.phase !== "initial" && state.phase !== "completed" && state.phase !== "cancelled",
     startConversation,
     updateField,
+    setCurrentField,
     processInput,
     confirmRegistration,
     reset,

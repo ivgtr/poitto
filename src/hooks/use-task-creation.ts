@@ -3,7 +3,6 @@
 import { useState, useRef, useCallback } from "react";
 import { Task } from "@/types/task";
 import { TaskInfo } from "@/domain/task/task-fields";
-import { taskService } from "@/services/task-service";
 import { getLlmConfig } from "@/lib/local-storage";
 import { useChatMessages } from "@/hooks/use-chat-messages";
 import { useTaskConversation } from "@/hooks/use-task-conversation";
@@ -47,6 +46,7 @@ export function useTaskCreation({
   const {
     state: conversation,
     updateField,
+    setCurrentField,
     processInput,
     reset: resetConversation,
   } = useTaskConversation();
@@ -69,6 +69,7 @@ export function useTaskCreation({
     addSystemMessage,
     processInput,
     updateField,
+    setCurrentField,
     setIsLoading,
     setIsFirstInput,
     reset,
