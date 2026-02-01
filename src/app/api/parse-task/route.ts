@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { parseTaskWithLLM } from "@/lib/llm-parser-simple";
+import { parseTaskWithLLM } from "@/lib/llm";
 import { LlmConfig } from "@/lib/local-storage";
 import { createError, handleError, ErrorCode } from "@/lib/errors";
 

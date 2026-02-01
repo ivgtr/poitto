@@ -3,11 +3,11 @@ import { NextRequest } from 'next/server'
 import { POST } from './route'
 
 // LLMパーサーをモック
-vi.mock('@/lib/llm-parser-simple', () => ({
+vi.mock('@/lib/llm', () => ({
   parseTaskWithLLM: vi.fn(),
 }))
 
-import { parseTaskWithLLM } from '@/lib/llm-parser-simple'
+import { parseTaskWithLLM } from '@/lib/llm'
 
 describe('POST /api/parse-task', () => {
   beforeEach(() => {
