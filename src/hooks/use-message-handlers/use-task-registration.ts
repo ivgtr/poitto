@@ -3,116 +3,40 @@
 import { useCallback } from "react";
 import { Task } from "@/types/task";
 import { TaskInfo, getNextMissingField } from "@/domain/task/task-fields";
-import { ParseResult, toTaskInfo } from "@/types/chat";
+import { toTaskInfo } from "@/types/chat";
 import { taskService } from "@/services/task-service";
 import {
   mapSelectionToField,
   generateNextQuestion,
   canRegisterTask,
 } from "@/services/task-conversation-service";
-import { LlmConfig } from "@/lib/local-storage";
 import { toast } from "sonner";
+import { MessageHandlerProps, MessageType, RegisterResult, SelectOptionResult } from "./types";
 
-interface MessageHandlerProps {
-  userId: string;
-  conversation: {
-    currentField: string | null;
-    currentTaskInfo: Partial<TaskInfo>;
-  };
-  isFirstInput: boolean;
-  pendingTaskInfo: React.MutableRefObject<TaskInfo | null>;
-  onTaskCreated: (task: Task) => void;
-  addUserMessage: (content: string) => void;
-  addAssistantMessage: (data: {
-    content: string;
-    type: "question" | "confirmation" | "complete" | "cancelled" | "initial";
-    taskInfo?: TaskInfo;
-    options?: string[];
-    isComplete?: boolean;
-  }) => void;
-  addSystemMessage: (content: string, type: "initial" | "cancelled") => void;
-  processInput: (input: string, config: LlmConfig) => Promise<{
-    result: ParseResult | null;
-    isComplete: boolean;
-  }>;
-  updateField: (field: keyof TaskInfo, value: TaskInfo[keyof TaskInfo]) => void;
-  setCurrentField: (field: string | null) => void;
-  setIsLoading: (loading: boolean) => void;
-  setIsFirstInput: (value: boolean) => void;
-  reset: () => void;
+interface UseTaskRegistrationDeps {
+  userId: MessageHandlerProps["userId"];
+  addAssistantMessage: MessageHandlerProps["addAssistantMessage"];
+  addSystemMessage: MessageHandlerProps["addSystemMessage"];
+  updateField: MessageHandlerProps["updateField"];
+  setCurrentField: MessageHandlerProps["setCurrentField"];
+  reset: MessageHandlerProps["reset"];
+  onTaskCreated: MessageHandlerProps["onTaskCreated"];
+  pendingTaskInfo: MessageHandlerProps["pendingTaskInfo"];
+  conversation: MessageHandlerProps["conversation"];
 }
 
-export function useMessageHandlers({
-  userId,
-  conversation,
-  isFirstInput,
-  pendingTaskInfo,
-  onTaskCreated,
-  addUserMessage,
-  addAssistantMessage,
-  addSystemMessage,
-  processInput,
-  updateField,
-  setCurrentField,
-  setIsLoading,
-  setIsFirstInput,
-  reset,
-}: MessageHandlerProps) {
-  const handleSendMessage = useCallback(async (message: string, config: LlmConfig) => {
-    addUserMessage(message);
-    setIsLoading(true);
-
-    try {
-      const { result } = await processInput(message, config);
-      const updatedTaskInfo = result?.taskInfo || conversation.currentTaskInfo;
-
-      // 初回入力時はフラグを更新
-      if (isFirstInput) {
-        setIsFirstInput(false);
-      }
-
-      // 解析結果を保存（LLM結果を信頼）
-      pendingTaskInfo.current = updatedTaskInfo ? toTaskInfo(updatedTaskInfo) : null;
-
-      // 次の空いているフィールドを尋ねる（すべて埋まるまで続ける）
-      const { field, question, options } = generateNextQuestion(
-        updatedTaskInfo,
-        false
-      );
-      
-      if (field) {
-        // まだ埋めていないフィールドがある場合は質問を続ける
-        setCurrentField(field);
-        addAssistantMessage({
-          content: question,
-          type: "question",
-          taskInfo: toTaskInfo(updatedTaskInfo),
-          options: [...options],
-        });
-      } else {
-        // すべてのフィールドが埋まった場合は確認画面へ
-        addAssistantMessage({
-          content: "以下のタスクを登録しますか？",
-          type: "confirmation",
-          taskInfo: updatedTaskInfo ? toTaskInfo(updatedTaskInfo) : toTaskInfo(conversation.currentTaskInfo),
-          options: ["登録する", "登録しない"],
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("タスクの解析に失敗しました");
-      addSystemMessage(
-        "申し訳ありません。解析に失敗しました。もう一度入力してください。",
-        "initial"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [addUserMessage, addAssistantMessage, addSystemMessage, conversation.currentTaskInfo, isFirstInput, pendingTaskInfo, processInput, setCurrentField, setIsFirstInput, setIsLoading]);
-
-  type RegisterResult =
-    | { type: "registered"; task: Task }
-    | { type: "error" };
+export function useTaskRegistration(deps: UseTaskRegistrationDeps) {
+  const {
+    userId,
+    addAssistantMessage,
+    addSystemMessage,
+    updateField,
+    setCurrentField,
+    reset,
+    onTaskCreated,
+    pendingTaskInfo,
+    conversation,
+  } = deps;
 
   const registerTask = useCallback(
     async (
@@ -130,7 +54,7 @@ export function useMessageHandlers({
 
         addAssistantMessage({
           content: "タスクを登録しました！",
-          type: "complete",
+          type: "complete" as MessageType,
           taskInfo,
           isComplete: true,
         });
@@ -147,7 +71,7 @@ export function useMessageHandlers({
     [addAssistantMessage, onTaskCreated, reset, userId]
   );
 
-  // フィールド選択処理（handleSelectOptionから分離）
+  // フィールド選択処理
   const handleFieldSelection = useCallback(
     (mapping: ReturnType<typeof mapSelectionToField>) => {
       // フィールドを更新（存在する場合）
@@ -174,14 +98,14 @@ export function useMessageHandlers({
       if (field) {
         addAssistantMessage({
           content: question,
-          type: "question",
+          type: "question" as MessageType,
           taskInfo: toTaskInfo(updatedTaskInfo),
           options: [...options],
         });
       } else {
         addAssistantMessage({
           content: "以下のタスクを登録しますか？",
-          type: "confirmation",
+          type: "confirmation" as MessageType,
           taskInfo: toTaskInfo(updatedTaskInfo),
           options: ["登録する", "登録しない"],
         });
@@ -198,11 +122,11 @@ export function useMessageHandlers({
   );
 
   const handleSelectOption = useCallback(
-    async (option: string) => {
+    async (option: string): Promise<SelectOptionResult> => {
       // キャンセル処理
       if (option === "登録しない") {
         addSystemMessage("タスクの登録をキャンセルしました。", "cancelled");
-        return { type: "cancelled" as const };
+        return { type: "cancelled" };
       }
 
       const mapping = mapSelectionToField(
@@ -241,7 +165,7 @@ export function useMessageHandlers({
 
       // 無効なマッピングの場合はメッセージとして送信
       if (!mapping.success) {
-        return { type: "send_message" as const, message: option };
+        return { type: "send_message", message: option };
       }
 
       // フィールド更新と次の質問
@@ -258,7 +182,7 @@ export function useMessageHandlers({
   );
 
   return {
-    handleSendMessage,
+    registerTask,
     handleSelectOption,
   };
 }
