@@ -19,7 +19,8 @@ function combineScheduledDateTime(
   if (!scheduledTime) return undefined;
   
   // 時間帯の場合はデフォルト時刻に変換
-  const actualTime = DEFAULT_TIME_SLOTS[scheduledTime as keyof typeof DEFAULT_TIME_SLOTS] || scheduledTime;
+  const timeSlotKey = scheduledTime as keyof typeof DEFAULT_TIME_SLOTS;
+  const actualTime = DEFAULT_TIME_SLOTS[timeSlotKey] || scheduledTime;
   
   return new Date(`${scheduledDate}T${actualTime}:00+09:00`);
 }

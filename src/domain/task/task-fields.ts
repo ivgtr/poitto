@@ -118,14 +118,14 @@ export function getNextMissingField(
   isInitial: boolean = false
 ): string | null {
   for (const field of REQUIRED_FIELDS) {
-    if (!taskInfo[field as keyof TaskInfo]) {
+    if (!taskInfo[field]) {
       return field;
     }
   }
 
   if (!isInitial) {
     for (const field of OPTIONAL_FIELDS) {
-      if (!taskInfo[field as keyof TaskInfo]) {
+      if (!taskInfo[field]) {
         return field;
       }
     }

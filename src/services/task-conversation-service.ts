@@ -180,15 +180,15 @@ export function parseChatInput(
 
   // scheduledDateフィールドで日付入力の可能性をチェック
   if (currentField === "scheduledDate") {
-    const { value, success } = mapOptionToFieldValue(input, "scheduledDate");
+    const { value, success } = mapOptionToFieldValue(input, "scheduledDate" as const);
     if (success) {
-      const updatedTaskInfo = { ...currentTaskInfo, scheduledDate: value as string | null };
+      const updatedTaskInfo = { ...currentTaskInfo, scheduledDate: value };
       const nextField = getNextMissingField(updatedTaskInfo, false);
       
       return {
         type: "selection",
         field: "scheduledDate",
-        value: value as string | null,
+        value,
         nextField,
       };
     }

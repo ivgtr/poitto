@@ -156,7 +156,7 @@ ${currentTimeStr}
     durationMinutes: parseDurationToMinutes(String(parsed.durationMinutes)) || (typeof parsed.durationMinutes === "number" && parsed.durationMinutes > 0 ? parsed.durationMinutes : null),
   };
 
-  const missing = REQUIRED_FIELDS.filter(f => !taskInfo[f as keyof TaskInfo]);
+  const missing = REQUIRED_FIELDS.filter(f => !taskInfo[f]);
 
   return {
     taskInfo,
@@ -339,7 +339,7 @@ ${currentTimeStr}
     durationMinutes: parseDurationToMinutes(String(parsed.durationMinutes)) || (typeof parsed.durationMinutes === "number" && parsed.durationMinutes > 0 ? parsed.durationMinutes : (currentTaskInfo.durationMinutes || null)),
   };
 
-  const missing = REQUIRED_FIELDS.filter(f => !taskInfo[f as keyof TaskInfo]);
+  const missing = REQUIRED_FIELDS.filter(f => !taskInfo[f]);
 
   return {
     taskInfo,

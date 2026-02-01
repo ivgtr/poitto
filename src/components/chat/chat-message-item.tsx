@@ -4,7 +4,14 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Check, X } from "lucide-react";
 import { categoryConfig, formatDuration } from "@/lib/task-utils";
+import { Category } from "@/types/task";
 import { ChatMessage } from "./chat-types";
+
+// 型ガード: 文字列が有効なCategoryかどうかをチェック
+function isValidCategory(category: string | null | undefined): category is Category {
+  if (!category) return false;
+  return ["shopping", "reply", "work", "personal", "other"].includes(category);
+}
 
 interface ChatMessageItemProps {
   message: ChatMessage;
@@ -45,10 +52,8 @@ export function ChatMessageItem({
               <div className="bg-white rounded-xl p-3 shadow-sm border border-gray-200">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-xl">
-                    {(message.taskInfo.category &&
-                      categoryConfig[
-                        message.taskInfo.category as keyof typeof categoryConfig
-                      ]?.icon) ||
+                    {(isValidCategory(message.taskInfo.category) &&
+                      categoryConfig[message.taskInfo.category]?.icon) ||
                       "📝"}
                   </span>
                   <span className="font-medium text-gray-900">
@@ -56,12 +61,10 @@ export function ChatMessageItem({
                   </span>
                 </div>
                 <div className="text-xs text-gray-500 space-y-1">
-                  {message.taskInfo.category && (
+                  {isValidCategory(message.taskInfo.category) && (
                     <p>
                       カテゴリ:{" "}
-                      {categoryConfig[
-                        message.taskInfo.category as keyof typeof categoryConfig
-                      ]?.label || message.taskInfo.category}
+                      {categoryConfig[message.taskInfo.category]?.label || message.taskInfo.category}
                     </p>
                   )}
                   {message.taskInfo.deadline && (
