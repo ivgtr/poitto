@@ -54,7 +54,8 @@ describe('isTaskComplete', () => {
     title: null,
     category: null,
     deadline: null,
-    scheduledAt: null,
+    scheduledDate: null,
+    scheduledTime: null,
     durationMinutes: null,
     ...overrides,
   })
@@ -87,7 +88,8 @@ describe('isTaskComplete', () => {
       title: 'お茶を買う', 
       category: 'shopping',
       deadline: null,
-      scheduledAt: null,
+      scheduledDate: null,
+      scheduledTime: null,
       durationMinutes: null,
     })
     expect(isTaskComplete(taskInfo)).toBe(true)
@@ -98,7 +100,8 @@ describe('isTaskComplete', () => {
     const taskInfo: Partial<TaskInfo> = {
       title: '新宿で山田とごはん',
       category: 'personal',
-      scheduledAt: '2026-01-31T15:00:00+09:00',
+      scheduledDate: '2026-02-01',
+      scheduledTime: '15:00',
       deadline: null,
       durationMinutes: null,
     }
@@ -112,6 +115,6 @@ describe('Field Constants', () => {
   })
 
   it('should have correct optional fields', () => {
-    expect(OPTIONAL_FIELDS).toEqual(['deadline', 'scheduledAt', 'durationMinutes'])
+    expect(OPTIONAL_FIELDS).toEqual(['deadline', 'scheduledDate', 'scheduledTime', 'durationMinutes'])
   })
 })
