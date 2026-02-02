@@ -10,6 +10,8 @@ import {
   getTimeFromSlot,
   combineDateAndTime,
   createJSTScheduledAt,
+  getRemainingDaysLabel,
+  getRemainingDaysColor,
 } from "./time-utils";
 
 describe("time-utils", () => {
@@ -265,6 +267,90 @@ describe("time-utils", () => {
 
     it("should return null when time is missing (for inbox)", () => {
       expect(combineDateAndTime("2026-02-02", null)).toBeNull();
+    });
+  });
+
+  describe("getRemainingDaysLabel", () => {
+    const baseDate = new Date("2026-02-02T00:00:00");
+
+    beforeEach(() => {
+      vi.setSystemTime(baseDate);
+    });
+
+    it("should return empty string for null deadline", () => {
+      expect(getRemainingDaysLabel(null)).toBe("");
+    });
+
+    it("should return '期限切れ' for past deadline", () => {
+      expect(getRemainingDaysLabel("2026-02-01T23:59:00")).toBe("期限切れ");
+    });
+
+    it("should return '本日中' for today's deadline", () => {
+      expect(getRemainingDaysLabel("2026-02-02T23:59:00")).toBe("本日中");
+    });
+
+    it("should return '明日' for tomorrow's deadline", () => {
+      expect(getRemainingDaysLabel("2026-02-03T23:59:00")).toBe("明日");
+    });
+
+    it("should return '2日後' for 2 days later", () => {
+      expect(getRemainingDaysLabel("2026-02-04T23:59:00")).toBe("2日後");
+    });
+
+    it("should return '3日後' for 3 days later", () => {
+      expect(getRemainingDaysLabel("2026-02-05T23:59:00")).toBe("3日後");
+    });
+
+    it("should return '2週間後' for 7-13 days later", () => {
+      expect(getRemainingDaysLabel("2026-02-09T23:59:00")).toBe("2週間後");
+      expect(getRemainingDaysLabel("2026-02-15T23:59:00")).toBe("2週間後");
+    });
+
+    it("should return 'N週間後' for 2-4 weeks later", () => {
+      // 2月2日（基準日）から14日後 = 2月16日 = 2週間後
+      expect(getRemainingDaysLabel("2026-02-16T23:59:00")).toBe("2週間後");
+      // 2月2日から21日後 = 2月23日 = 3週間後
+      expect(getRemainingDaysLabel("2026-02-23T23:59:00")).toBe("3週間後");
+    });
+
+    it("should return '1ヶ月以上' for 5+ weeks later", () => {
+      expect(getRemainingDaysLabel("2026-03-09T23:59:00")).toBe("1ヶ月以上");
+    });
+  });
+
+  describe("getRemainingDaysColor", () => {
+    const baseDate = new Date("2026-02-02T00:00:00");
+
+    beforeEach(() => {
+      vi.setSystemTime(baseDate);
+    });
+
+    it("should return empty string for null deadline", () => {
+      expect(getRemainingDaysColor(null)).toBe("");
+    });
+
+    it("should return red classes for overdue deadline", () => {
+      expect(getRemainingDaysColor("2026-02-01T23:59:00")).toBe(
+        "bg-red-100 text-red-700 border-red-200"
+      );
+    });
+
+    it("should return red classes for today's deadline", () => {
+      expect(getRemainingDaysColor("2026-02-02T23:59:00")).toBe(
+        "bg-red-100 text-red-700 border-red-200"
+      );
+    });
+
+    it("should return orange classes for tomorrow's deadline", () => {
+      expect(getRemainingDaysColor("2026-02-03T23:59:00")).toBe(
+        "bg-orange-100 text-orange-700 border-orange-200"
+      );
+    });
+
+    it("should return green classes for 3+ days later", () => {
+      expect(getRemainingDaysColor("2026-02-05T23:59:00")).toBe(
+        "bg-green-100 text-green-700 border-green-200"
+      );
     });
   });
 });

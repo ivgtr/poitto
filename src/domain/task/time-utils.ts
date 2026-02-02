@@ -275,3 +275,49 @@ export function combineDateAndTime(date: string, time: string | null): string | 
   
   return `${date}T${actualTime}:00+09:00`;
 }
+
+/**
+ * 残り期日ラベルを取得（Inbox専用）
+ * @param deadline 期限日時（DateまたはISO8601文字列）
+ * @returns 残り期日ラベル（例: "本日中", "明日", "3日後", "2週間後", "1ヶ月以上"）
+ */
+export function getRemainingDaysLabel(deadline: Date | null | string): string {
+  if (!deadline) return "";
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const deadlineDate = new Date(deadline);
+  deadlineDate.setHours(0, 0, 0, 0);
+  
+  const diffMs = deadlineDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) return "期限切れ";
+  if (diffDays === 0) return "本日中";
+  if (diffDays === 1) return "明日";
+  if (diffDays <= 3) return `${diffDays}日後`;
+  if (diffDays <= 13) return "2週間後";
+  if (diffDays <= 34) return `${Math.ceil(diffDays / 7)}週間後`;
+  return "1ヶ月以上";
+}
+
+/**
+ * 残り期日ラベルの色クラスを取得
+ * @param deadline 期限日時（DateまたはISO8601文字列）
+ * @returns Tailwind CSSクラス（赤・橙・緑の3パターン）
+ */
+export function getRemainingDaysColor(deadline: Date | null | string): string {
+  if (!deadline) return "";
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const deadlineDate = new Date(deadline);
+  deadlineDate.setHours(0, 0, 0, 0);
+  const diffMs = deadlineDate.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  
+  if (diffDays <= 0) return "bg-red-100 text-red-700 border-red-200";
+  if (diffDays === 1) return "bg-orange-100 text-orange-700 border-orange-200";
+  return "bg-green-100 text-green-700 border-green-200";
+}
