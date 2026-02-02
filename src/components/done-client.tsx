@@ -52,7 +52,7 @@ export function DoneClient({ userId, initialTasks }: DoneClientProps) {
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
-      <Sidebar activeView={activeView} onViewChange={setActiveView} />
+      <Sidebar activeView={activeView} onViewChange={setActiveView} userId={userId} />
 
       <main className="flex-1 flex flex-col md:fixed md:top-0 md:right-0 md:left-64 md:bottom-0 md:h-screen overflow-hidden">
         <header className="md:hidden flex items-center justify-between bg-white border-b px-4 py-3">

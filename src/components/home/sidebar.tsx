@@ -1,17 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home, Calendar, MessageSquare, CheckCircle, LogOut, Settings, Plus } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { TaskCreateDialog } from "@/components/task/task-create-dialog";
+import { useTaskStore } from "@/stores/task-store";
 
 type ViewMode = "home" | "calendar" | "chat" | "done";
 
 interface SidebarProps {
   activeView: ViewMode;
   onViewChange: (view: ViewMode) => void;
+  userId: string;
 }
 
 const navItems = [
@@ -21,20 +23,35 @@ const navItems = [
   { id: "done" as ViewMode, icon: CheckCircle, label: "Done", path: "/done" },
 ];
 
-export function Sidebar({ activeView, onViewChange }: SidebarProps) {
+export function Sidebar({ activeView, onViewChange, userId }: SidebarProps) {
   const router = useRouter();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const { createTask, fetchTasks } = useTaskStore();
 
-  const handleCreate = async (_data: {
+  // フォーカス時にタスクリストを再取得（デバイス間同期）
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchTasks(userId, false); // キャッシュ戦略に従う（5分以内はスキップ）
+    };
+
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [userId, fetchTasks]);
+
+  const handleCreate = async (data: {
     title: string;
     category: string;
     deadline?: Date | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => {
-    // TODO: タスク作成Server Actionを呼び出し、親コンポーネントに通知
-    // 現在はダイアログを閉じるだけ
-    setIsCreateOpen(false);
+    const result = await createTask(userId, data);
+    if (result) {
+      // タスク作成成功時にダイアログを閉じる
+      // リストへの反映はストアの楽観的更新で自動的に行われる
+      setIsCreateOpen(false);
+    }
+    // 失敗時はストア内でエラートースト表示、ダイアログは開いたまま
   };
 
   return (

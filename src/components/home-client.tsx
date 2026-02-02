@@ -64,7 +64,7 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">
       {/* PC Sidebar - Fixed */}
-      <Sidebar activeView={activeView} onViewChange={setActiveView} />
+      <Sidebar activeView={activeView} onViewChange={setActiveView} userId={userId} />
 
       {/* Main Content - Fixed height container */}
       <main className="flex-1 flex flex-col md:fixed md:top-0 md:right-0 md:left-64 md:bottom-0 md:h-screen overflow-hidden">
