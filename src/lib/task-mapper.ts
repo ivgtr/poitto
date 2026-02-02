@@ -9,6 +9,7 @@ export function mapPrismaTaskToTask(prismaTask: {
   title: string;
   category: string;
   deadline: Date | null;
+  scheduledDate: string | null;
   scheduledAt: Date | null;
   durationMinutes: number | null;
   status: string;
@@ -45,6 +46,7 @@ export function mapPrismaTasksToTasks(prismaTasks: Array<{
   title: string;
   category: string;
   deadline: Date | null;
+  scheduledDate: string | null;
   scheduledAt: Date | null;
   durationMinutes: number | null;
   status: string;

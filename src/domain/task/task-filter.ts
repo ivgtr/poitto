@@ -27,14 +27,14 @@ export function isArchived(task: Task): boolean {
  * 予定（scheduledAt）が設定されているタスク
  */
 export function isScheduled(task: Task): boolean {
-  return task.scheduledAt !== null;
+  return task.scheduledAt !== null || !!task.scheduledDate;
 }
 
 /**
  * 予定が設定されていないタスク
  */
 export function isUnscheduled(task: Task): boolean {
-  return task.scheduledAt === null;
+  return task.scheduledAt === null && !task.scheduledDate;
 }
 
 /**

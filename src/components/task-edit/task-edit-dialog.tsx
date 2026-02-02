@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { Task } from "@/types/task";
 import {
   Dialog,
@@ -20,11 +20,13 @@ interface TaskEditDialogProps {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => Promise<void>;
   buttonClassName?: string;
   iconClassName?: string;
+  trigger?: ReactNode;
 }
 
 export function TaskEditDialog({
@@ -32,6 +34,7 @@ export function TaskEditDialog({
   onSave,
   buttonClassName,
   iconClassName,
+  trigger,
 }: TaskEditDialogProps) {
   const [open, setOpen] = useState(false);
   
@@ -68,15 +71,17 @@ export function TaskEditDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button
-          className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm text-gray-600 hover:text-violet-600",
-            buttonClassName
-          )}
-          title="編集"
-        >
-          <Pencil className={cn("h-4 w-4", iconClassName)} />
-        </button>
+        {trigger || (
+          <button
+            className={cn(
+              "flex h-8 w-8 items-center justify-center rounded-full bg-white/80 hover:bg-white transition-colors shadow-sm text-gray-600 hover:text-violet-600",
+              buttonClassName
+            )}
+            title="編集"
+          >
+            <Pencil className={cn("h-4 w-4", iconClassName)} />
+          </button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>

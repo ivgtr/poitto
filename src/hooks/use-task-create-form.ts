@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import {
   formDateStringToDeadline,
+  formDateStringToScheduledDate,
   formStringsToScheduledAt,
   formStringToDuration,
 } from "@/domain/task/form-conversion";
@@ -12,6 +13,7 @@ interface UseTaskCreateFormProps {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => Promise<void>;
@@ -67,6 +69,7 @@ export function useTaskCreateForm({
     try {
       // Convert form strings to proper Date objects with JST timezone
       const deadlineDate = formDateStringToDeadline(deadline);
+      const scheduledDateValue = formDateStringToScheduledDate(scheduledDate);
       const scheduledAtDate = formStringsToScheduledAt(
         scheduledDate,
         scheduledTime
@@ -77,6 +80,7 @@ export function useTaskCreateForm({
         title: title.trim(),
         category,
         deadline: deadlineDate,
+        scheduledDate: scheduledDateValue,
         scheduledAt: scheduledAtDate,
         durationMinutes: duration,
       };

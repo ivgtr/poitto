@@ -32,6 +32,7 @@ export interface TaskService {
     title?: string;
     category?: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }): Promise<Task>;
@@ -53,6 +54,7 @@ export const taskService: TaskService = {
       title: taskInfo.title!,
       category: taskInfo.category || "other",
       deadline: taskInfo.deadline ? new Date(taskInfo.deadline) : undefined,
+      scheduledDate: taskInfo.scheduledDate,
       scheduledAt: combineScheduledDateTime(taskInfo.scheduledDate, taskInfo.scheduledTime),
       durationMinutes: taskInfo.durationMinutes || undefined,
     });
@@ -69,6 +71,7 @@ export const taskService: TaskService = {
     title?: string;
     category?: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }): Promise<Task> {
@@ -83,6 +86,7 @@ export async function handleTaskUpdate(
     title?: string;
     category?: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   },

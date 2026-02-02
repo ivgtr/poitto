@@ -7,6 +7,7 @@ export interface Task {
   title: string;
   category: Category;
   deadline: Date | null;
+  scheduledDate?: string | null;
   scheduledAt: Date | null;
   durationMinutes: number | null;
   status: TaskStatus;

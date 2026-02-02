@@ -76,6 +76,16 @@ export function formStringsToScheduledAt(
 }
 
 /**
+ * フォーム用の日付文字列をそのまま保存用に正規化
+ * @param dateStr "YYYY-MM-DD"形式の文字列
+ * @returns 有効な日付文字列、無効な場合はnull
+ */
+export function formDateStringToScheduledDate(dateStr: string): string | null {
+  if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return null;
+  return dateStr;
+}
+
+/**
  * scheduledAt（DateまたはISO文字列）をフォーム用に分解
  * @param scheduledAt DateオブジェクトまたはISO8601文字列
  * @returns { date: "YYYY-MM-DD", time: "HH:mm" } オブジェクト

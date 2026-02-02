@@ -64,6 +64,7 @@ export async function createTask(
     title: string;
     category: string;
     deadline?: Date;
+    scheduledDate?: string | null;
     scheduledAt?: Date;
     durationMinutes?: number;
   }
@@ -140,6 +141,7 @@ export async function updateTask(
     title?: string;
     category?: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }

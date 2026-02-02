@@ -18,9 +18,11 @@ interface KanbanBoardProps {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => Promise<void>;
+  onComplete?: (taskId: string) => Promise<void>;
 }
 
 const BOARD_COLUMNS: BoardColumn[] = [
@@ -64,7 +66,7 @@ function compareByCreatedAt(left: Task, right: Task): number {
   return new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime();
 }
 
-export function KanbanBoard({ tasks, onUpdate }: KanbanBoardProps) {
+export function KanbanBoard({ tasks, onUpdate, onComplete }: KanbanBoardProps) {
   const today = new Date();
   const activeTasks = getActiveTasks(tasks);
 
@@ -112,7 +114,12 @@ export function KanbanBoard({ tasks, onUpdate }: KanbanBoardProps) {
               </p>
             ) : (
               columnTasks.map((task) => (
-                <KanbanCard key={task.id} task={task} onUpdate={onUpdate} />
+                <KanbanCard
+                  key={task.id}
+                  task={task}
+                  onUpdate={onUpdate}
+                  onComplete={onComplete}
+                />
               ))
             )}
           </KanbanColumn>

@@ -7,6 +7,7 @@ import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
 import { useTaskStore } from "@/stores/task-store";
+import { normalizeCategory } from "@/lib/task-utils";
 import { Task } from "@/types/task";
 
 interface HomeClientProps {
@@ -23,7 +24,7 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Zustand Store
-  const { initializeTasks, updateTask, tasks } = useTaskStore();
+  const { initializeTasks, updateTask, completeTask, tasks } = useTaskStore();
   
   // Initialize store with server data
   useEffect(() => {
@@ -63,13 +64,15 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => {
     await updateTask(taskId, {
       title: data.title,
-      category: data.category as any, // Type casting for Category
+      category: normalizeCategory(data.category),
       deadline: data.deadline,
+      scheduledDate: data.scheduledDate,
       scheduledAt: data.scheduledAt,
       durationMinutes: data.durationMinutes,
     });
@@ -99,7 +102,11 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 期限別ボード
               </h2>
-              <KanbanBoard tasks={activeTasks} onUpdate={handleEditTask} />
+              <KanbanBoard
+                tasks={activeTasks}
+                onUpdate={handleEditTask}
+                onComplete={completeTask}
+              />
             </div>
           </div>
         </div>

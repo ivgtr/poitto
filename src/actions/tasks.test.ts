@@ -99,6 +99,7 @@ describe('Task Server Actions', () => {
         title: '新しいタスク',
         category: 'personal',
         status: 'inbox',
+        scheduledDate: null,
         scheduledAt: null,
         deadline: null,
         durationMinutes: null,
@@ -133,6 +134,7 @@ describe('Task Server Actions', () => {
         title: '期限付きタスク',
         category: 'work',
         status: 'scheduled',
+        scheduledDate: null,
         scheduledAt,
         deadline,
         durationMinutes: 60,
@@ -160,6 +162,40 @@ describe('Task Server Actions', () => {
         scheduledAt,
         deadline,
         durationMinutes: 60,
+      })
+    })
+
+    it('should create scheduled task with date only', async () => {
+      const mockTask: Task = {
+        id: '3',
+        userId: 'user-1',
+        title: '日付のみタスク',
+        category: 'work',
+        status: 'scheduled',
+        scheduledDate: '2026-02-10',
+        scheduledAt: null,
+        deadline: null,
+        durationMinutes: null,
+        rawInput: '日付のみタスク',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        completedAt: null,
+      }
+
+      vi.mocked(createTaskInDB).mockResolvedValue(mockTask)
+
+      const result = await createTask('user-1', {
+        title: '日付のみタスク',
+        category: 'work',
+        scheduledDate: '2026-02-10',
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.data?.status).toBe('scheduled')
+      expect(createTaskInDB).toHaveBeenCalledWith('user-1', {
+        title: '日付のみタスク',
+        category: 'work',
+        scheduledDate: '2026-02-10',
       })
     })
 
@@ -206,6 +242,7 @@ describe('Task Server Actions', () => {
         title: 'タスク',
         category: 'work',
         status: 'done',
+        scheduledDate: null,
         scheduledAt: null,
         deadline: null,
         durationMinutes: null,
@@ -232,6 +269,7 @@ describe('Task Server Actions', () => {
         title: 'タスク',
         category: 'work',
         status: 'inbox',
+        scheduledDate: null,
         scheduledAt: null,
         deadline: null,
         durationMinutes: null,
@@ -278,6 +316,7 @@ describe('Task Server Actions', () => {
         title: 'タスク',
         category: 'work',
         status: 'scheduled',
+        scheduledDate: null,
         scheduledAt,
         deadline: null,
         durationMinutes: null,

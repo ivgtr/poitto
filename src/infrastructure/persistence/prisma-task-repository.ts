@@ -12,6 +12,7 @@ export async function createTaskInDB(userId: string, data: {
   title: string;
   category: string;
   deadline?: Date;
+  scheduledDate?: string | null;
   scheduledAt?: Date;
   durationMinutes?: number;
   rawInput?: string;
@@ -28,9 +29,10 @@ export async function createTaskInDB(userId: string, data: {
       title,
       category: data.category || "other",
       deadline: data.deadline || null,
+      scheduledDate: data.scheduledDate || null,
       scheduledAt: data.scheduledAt || null,
       durationMinutes: data.durationMinutes || null,
-      status: data.scheduledAt ? "scheduled" : "inbox",
+      status: data.scheduledAt || data.scheduledDate ? "scheduled" : "inbox",
       rawInput: data.rawInput || title,
     },
   });
@@ -53,6 +55,7 @@ export async function getTasksFromDB(userId: string, status?: string[]): Promise
     },
     orderBy: [
       { status: "asc" },
+      { scheduledDate: "asc" },
       { scheduledAt: "asc" },
     ],
   });
@@ -73,9 +76,13 @@ export async function updateTaskStatusInDB(taskId: string, status: string): Prom
 }
 
 export async function scheduleTaskInDB(taskId: string, scheduledAt: Date): Promise<Task> {
+  const scheduledDate = new Date(scheduledAt.getTime() + 9 * 60 * 60 * 1000)
+    .toISOString()
+    .slice(0, 10);
   const task = await prisma.task.update({
     where: { id: taskId },
     data: {
+      scheduledDate,
       scheduledAt,
       status: "scheduled",
     },
@@ -90,6 +97,7 @@ export async function updateTaskInDB(
     title?: string;
     category?: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }
@@ -112,12 +120,26 @@ export async function updateTaskInDB(
     updateData.deadline = data.deadline;
   }
 
+  if (data.scheduledDate !== undefined) {
+    updateData.scheduledDate = data.scheduledDate;
+    if (data.scheduledDate) {
+      updateData.status = "scheduled";
+    }
+  }
+
   if (data.scheduledAt !== undefined) {
     updateData.scheduledAt = data.scheduledAt;
     // scheduledAtが設定された場合、ステータスを更新
     if (data.scheduledAt) {
       updateData.status = "scheduled";
+      updateData.scheduledDate = new Date(data.scheduledAt.getTime() + 9 * 60 * 60 * 1000)
+        .toISOString()
+        .slice(0, 10);
     }
+  }
+
+  if (data.scheduledDate === null && data.scheduledAt === null) {
+    updateData.status = "inbox";
   }
 
   if (data.durationMinutes !== undefined) {

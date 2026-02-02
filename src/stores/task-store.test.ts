@@ -17,6 +17,8 @@ vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    custom: vi.fn(),
+    dismiss: vi.fn(),
   },
 }));
 
@@ -39,6 +41,7 @@ describe("useTaskStore", () => {
           title: "Test Task",
           category: "work" as Category,
           deadline: null,
+          scheduledDate: null,
           scheduledAt: null,
           durationMinutes: null,
           status: "inbox" as TaskStatus,

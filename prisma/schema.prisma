@@ -80,6 +80,7 @@ model Task {
   title           String
   category        String    @default("other")
   deadline        DateTime?
+  scheduledDate   String?
   scheduledAt     DateTime?
   durationMinutes Int?
 

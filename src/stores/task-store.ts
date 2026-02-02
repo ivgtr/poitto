@@ -1,5 +1,7 @@
 "use client";
 
+import type { CSSProperties } from "react";
+import { createElement } from "react";
 import { create } from "zustand";
 import { Task, Category, TaskStatus } from "@/types/task";
 import {
@@ -9,6 +11,7 @@ import {
   updateTaskStatus as updateTaskStatusAction,
 } from "@/actions/tasks";
 import { toast } from "sonner";
+import { UndoToast } from "@/components/ui/undo-toast";
 
 // タスクの同期状態
 export type SyncStatus = "synced" | "pending" | "conflict";
@@ -25,6 +28,7 @@ export interface CreateTaskData {
   title: string;
   category: string;
   deadline?: Date | null;
+  scheduledDate?: string | null;
   scheduledAt?: Date | null;
   durationMinutes?: number | null;
 }
@@ -34,11 +38,13 @@ export interface UpdateTaskData {
   title?: string;
   category?: Category;
   deadline?: Date | null;
+  scheduledDate?: string | null;
   scheduledAt?: Date | null;
   durationMinutes?: number | null;
 }
 
 const UNDO_TIMEOUT_MS = 5000;
+const UNDO_TOAST_ID = "undo-toast";
 
 type UndoOperation = "update" | "complete";
 
@@ -119,6 +125,17 @@ function resolveConflict(
     _syncStatus: "synced",
     _localTimestamp: Date.now(),
   };
+}
+
+function getUndoMessage(operation: UndoOperation, title: string): string {
+  if (operation === "complete") {
+    return `完了しました：${title}`;
+  }
+  return `更新しました：${title}`;
+}
+
+function getUndoProgressClass(operation: UndoOperation): string {
+  return operation === "complete" ? "bg-emerald-500/70" : "bg-blue-500/70";
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -224,9 +241,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       title: data.title,
       category: data.category as Category,
       deadline: data.deadline || null,
+      scheduledDate: data.scheduledDate || null,
       scheduledAt: data.scheduledAt || null,
       durationMinutes: data.durationMinutes || null,
-      status: data.scheduledAt ? "scheduled" : "inbox",
+      status: data.scheduledAt || data.scheduledDate ? "scheduled" : "inbox",
       completedAt: null,
       rawInput: null,
       createdAt: new Date(),
@@ -245,6 +263,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         title: data.title,
         category: data.category,
         deadline: data.deadline || undefined,
+        scheduledDate: data.scheduledDate,
         scheduledAt: data.scheduledAt || undefined,
         durationMinutes: data.durationMinutes || undefined,
       });
@@ -316,14 +335,24 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     });
 
     // 楽観的更新
-    const optimisticTask: TaskWithMeta = {
-      ...currentTask,
-      ...(data.title && { title: data.title }),
-      ...(data.category && { category: data.category }),
-      ...(data.deadline !== undefined && { deadline: data.deadline }),
+      const optimisticTask: TaskWithMeta = {
+        ...currentTask,
+        ...(data.title && { title: data.title }),
+        ...(data.category && { category: data.category }),
+        ...(data.deadline !== undefined && { deadline: data.deadline }),
+      ...(data.scheduledDate !== undefined && { scheduledDate: data.scheduledDate }),
       ...(data.scheduledAt !== undefined && {
         scheduledAt: data.scheduledAt,
       }),
+      ...(data.scheduledDate !== undefined || data.scheduledAt !== undefined
+        ? {
+            status:
+              (data.scheduledAt ?? currentTask.scheduledAt) ||
+              (data.scheduledDate ?? currentTask.scheduledDate)
+                ? ("scheduled" as TaskStatus)
+                : ("inbox" as TaskStatus),
+          }
+        : {}),
       ...(data.durationMinutes !== undefined && {
         durationMinutes: data.durationMinutes,
       }),
@@ -345,6 +374,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         title: data.title,
         category: data.category,
         deadline: data.deadline,
+        scheduledDate: data.scheduledDate,
         scheduledAt: data.scheduledAt,
         durationMinutes: data.durationMinutes,
       });
@@ -361,15 +391,24 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           tasks: state.tasks.map((t) => (t.id === taskId ? actualTask : t)),
         }));
 
-        toast.success("タスクを更新しました", {
-          duration: UNDO_TIMEOUT_MS,
-          action: {
-            label: "元に戻す",
-            onClick: () => {
-              get().undo();
-            },
-          },
-        });
+        const progressStyle: CSSProperties = {
+          animationDuration: `${UNDO_TIMEOUT_MS}ms`,
+        };
+
+        toast.custom(
+          (t) =>
+            createElement(UndoToast, {
+              message: getUndoMessage("update", actualTask.title),
+              variant: "update",
+              progressClassName: getUndoProgressClass("update"),
+              progressStyle,
+              onUndo: () => {
+                toast.dismiss(t);
+                get().undo();
+              },
+            }),
+          { id: UNDO_TOAST_ID, duration: UNDO_TIMEOUT_MS }
+        );
         return result.data;
       } else {
         throw new Error(result.error?.userMessage || "タスク更新に失敗しました");
@@ -448,15 +487,24 @@ export const useTaskStore = create<TaskState>((set, get) => ({
               : t
           ),
         }));
-        toast.success("タスクを完了しました", {
-          duration: UNDO_TIMEOUT_MS,
-          action: {
-            label: "元に戻す",
-            onClick: () => {
-              get().undo();
-            },
-          },
-        });
+        const progressStyle: CSSProperties = {
+          animationDuration: `${UNDO_TIMEOUT_MS}ms`,
+        };
+
+        toast.custom(
+          (t) =>
+            createElement(UndoToast, {
+              message: getUndoMessage("complete", currentTask.title),
+              variant: "complete",
+              progressClassName: getUndoProgressClass("complete"),
+              progressStyle,
+              onUndo: () => {
+                toast.dismiss(t);
+                get().undo();
+              },
+            }),
+          { id: UNDO_TOAST_ID, duration: UNDO_TIMEOUT_MS }
+        );
       } else {
         throw new Error("タスク完了に失敗しました");
       }
@@ -636,7 +684,8 @@ export const selectActiveTasks = (state: TaskState) =>
 export const selectScheduledTasks = (state: TaskState) =>
   state.tasks.filter(
     (t) =>
-      (t.status === "scheduled" || t.status === "done") && t.scheduledAt
+      (t.status === "scheduled" || t.status === "done") &&
+      (t.scheduledAt || t.scheduledDate)
   );
 
 export const selectCompletedTasks = (state: TaskState) =>

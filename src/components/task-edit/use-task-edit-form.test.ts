@@ -3,18 +3,19 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { useTaskEditForm } from './use-task-edit-form'
 import type { Task } from '@/types/task'
 
-const createMockTask = (overrides: Partial<Task> = {}): Task => ({
-  id: 'task-1',
-  userId: 'user-1',
-  title: 'テストタスク',
-  category: 'work',
-  status: 'inbox',
-  deadline: null,
-  scheduledAt: null,
-  durationMinutes: null,
-  rawInput: 'テストタスク',
-  createdAt: new Date('2026-01-01'),
-  updatedAt: new Date('2026-01-01'),
+  const createMockTask = (overrides: Partial<Task> = {}): Task => ({
+    id: 'task-1',
+    userId: 'user-1',
+    title: 'テストタスク',
+    category: 'work',
+    status: 'inbox',
+    deadline: null,
+    scheduledDate: null,
+    scheduledAt: null,
+    durationMinutes: null,
+    rawInput: 'テストタスク',
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
   completedAt: null,
   ...overrides,
 })
@@ -66,6 +67,20 @@ describe('useTaskEditForm', () => {
 
       expect(result.current.scheduledDate).toBe('2026-03-20')
       expect(result.current.scheduledTime).toBe('14:30')
+    })
+
+    it('should use scheduledDate when scheduledAt is null', () => {
+      const task = createMockTask({
+        scheduledDate: '2026-04-10',
+        scheduledAt: null,
+      })
+
+      const { result } = renderHook(() =>
+        useTaskEditForm({ task, onSave: mockOnSave, onClose: mockOnClose })
+      )
+
+      expect(result.current.scheduledDate).toBe('2026-04-10')
+      expect(result.current.scheduledTime).toBe('')
     })
 
     it('should handle null dates', () => {
@@ -145,6 +160,7 @@ describe('useTaskEditForm', () => {
         title: '更新されたタスク',
         category: 'personal',
         deadline: null,
+        scheduledDate: null,
         scheduledAt: null,
         durationMinutes: null,
       })
@@ -166,6 +182,7 @@ describe('useTaskEditForm', () => {
       })
 
       expect(mockOnSave).toHaveBeenCalledWith('task-456', expect.objectContaining({
+        scheduledDate: '2026-05-10',
         scheduledAt: new Date('2026-05-10T09:30:00'),
       }))
     })

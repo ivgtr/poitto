@@ -5,6 +5,7 @@ import { Task } from "@/types/task";
 import {
   dateToFormDateString,
   formDateStringToDeadline,
+  formDateStringToScheduledDate,
   formStringsToScheduledAt,
   durationToFormString,
   formStringToDuration,
@@ -17,6 +18,7 @@ interface UseTaskEditFormProps {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => Promise<void>;
@@ -63,6 +65,7 @@ export function useTaskEditForm({
     dateToFormDateString(task.deadline)
   );
   const [scheduledDate, setScheduledDate] = useState<string>(() => {
+    if (task.scheduledDate) return task.scheduledDate;
     const { date } = splitScheduledAt(task.scheduledAt);
     return date;
   });
@@ -82,6 +85,7 @@ export function useTaskEditForm({
     try {
       // Convert form strings to proper Date objects with JST timezone
       const deadlineDate = formDateStringToDeadline(deadline);
+      const scheduledDateValue = formDateStringToScheduledDate(scheduledDate);
       const scheduledAtDate = formStringsToScheduledAt(scheduledDate, scheduledTime);
       const duration = formStringToDuration(durationMinutes);
 
@@ -89,6 +93,7 @@ export function useTaskEditForm({
         title: title.trim(),
         category,
         deadline: deadlineDate,
+        scheduledDate: scheduledDateValue,
         scheduledAt: scheduledAtDate,
         durationMinutes: duration,
       };

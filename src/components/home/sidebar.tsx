@@ -42,6 +42,7 @@ export function Sidebar({ activeView, onViewChange, userId }: SidebarProps) {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => {
