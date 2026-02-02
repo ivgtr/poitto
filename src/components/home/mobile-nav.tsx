@@ -11,30 +11,19 @@ interface MobileNavProps {
 }
 
 const navItems = [
-  { id: "home" as ViewMode, icon: Home, label: "Home" },
-  { id: "calendar" as ViewMode, icon: Calendar, label: "Calendar" },
-  { id: "chat" as ViewMode, icon: MessageSquare, label: "Chat" },
-  { id: "done" as ViewMode, icon: CheckCircle, label: "Done" },
+  { id: "home" as ViewMode, icon: Home, label: "Home", path: "/" },
+  { id: "calendar" as ViewMode, icon: Calendar, label: "Calendar", path: "/calendar" },
+  { id: "chat" as ViewMode, icon: MessageSquare, label: "Chat", path: "/chat" },
+  { id: "done" as ViewMode, icon: CheckCircle, label: "Done", path: "/done" },
 ];
 
 export function MobileNav({ activeView, onViewChange }: MobileNavProps) {
   const router = useRouter();
 
   const handleNavClick = (view: ViewMode) => {
-    switch (view) {
-      case "home":
-        router.push("/");
-        break;
-      case "calendar":
-        router.push("/");
-        break;
-      case "chat":
-        router.push("/chat");
-        break;
-      case "done":
-        router.push("/");
-        break;
-    }
+    const target = navItems.find((item) => item.id === view);
+    if (!target) return;
+    router.push(target.path);
     onViewChange(view);
   };
 
