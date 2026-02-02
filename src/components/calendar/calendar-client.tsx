@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useState, useEffect } from "react";
 import { ChatContainer } from "@/components/chat";
 import { CalendarDayView } from "@/components/calendar/calendar-day-view";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
@@ -10,8 +9,7 @@ import { CalendarWeekView } from "@/components/calendar/calendar-week-view";
 import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
-import { useTaskList } from "@/hooks/use-task-list";
-import { handleTaskUpdate } from "@/services/task-service";
+import { useTaskStore, selectScheduledTasks } from "@/stores/task-store";
 import { Task } from "@/types/task";
 
 type ViewMode = "home" | "calendar" | "chat" | "done";
@@ -29,7 +27,16 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const { tasks, completeTask, addTask, updateTask } = useTaskList({ initialTasks });
+  // Zustand Store
+  const { initializeTasks, updateTask, completeTask } = useTaskStore();
+  
+  // Initialize store with server data
+  useEffect(() => {
+    initializeTasks(initialTasks);
+  }, [initialTasks, initializeTasks]);
+  
+  // Get scheduled tasks from store (scheduled + done with scheduledAt)
+  const tasks = useTaskStore(selectScheduledTasks);
 
   const {
     isLoading,
@@ -39,7 +46,9 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
     clearSession,
   } = useTaskCreation({
     userId,
-    onTaskCreated: addTask,
+    onTaskCreated: () => {
+      // Task creation now handled by sidebar/store
+    },
   });
 
   const handleChatOpenChange = useCallback((open: boolean) => {
@@ -61,12 +70,13 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
         durationMinutes?: number | null;
       }
     ) => {
-      try {
-        await handleTaskUpdate(taskId, data, updateTask);
-        toast.success("タスクを更新しました");
-      } catch {
-        toast.error("タスクの更新に失敗しました");
-      }
+      await updateTask(taskId, {
+        title: data.title,
+        category: data.category as any,
+        deadline: data.deadline,
+        scheduledAt: data.scheduledAt,
+        durationMinutes: data.durationMinutes,
+      });
     },
     [updateTask]
   );

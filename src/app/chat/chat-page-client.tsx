@@ -6,8 +6,8 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ChatInterface } from "@/components/chat-interface";
 import { MobileNav } from "@/components/home/mobile-nav";
-import { useTaskList } from "@/hooks/use-task-list";
 import { useTaskCreation } from "@/hooks/use-task-creation";
+import { useTaskStore } from "@/stores/task-store";
 import { toast } from "sonner";
 
 interface ChatPageClientProps {
@@ -18,8 +18,14 @@ interface ChatPageClientProps {
 export function ChatPageClient({ userId }: ChatPageClientProps) {
   const router = useRouter();
   const [activeView, setActiveView] = useState<"home" | "calendar" | "chat" | "done">("chat");
-
-  const { addTask } = useTaskList({ initialTasks: [] });
+  
+  // Zustand Store for adding tasks from chat
+  const { tasks, initializeTasks } = useTaskStore();
+  
+  // Initialize with empty array (chat page doesn't load initial tasks)
+  if (tasks.length === 0) {
+    initializeTasks([]);
+  }
 
   const {
     isLoading,
@@ -30,7 +36,8 @@ export function ChatPageClient({ userId }: ChatPageClientProps) {
   } = useTaskCreation({
     userId,
     onTaskCreated: (task) => {
-      addTask(task);
+      // Add task to store manually (chat doesn't use sidebar create flow)
+      initializeTasks([task, ...tasks]);
       toast.success("タスクを追加しました");
     },
   });

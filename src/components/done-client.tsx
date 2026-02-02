@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { toast } from "sonner";
+import { useCallback, useState, useEffect } from "react";
 import { ChatContainer } from "@/components/chat";
 import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
-import { useTaskList } from "@/hooks/use-task-list";
+import { useTaskStore, selectCompletedTasks } from "@/stores/task-store";
 import { categoryConfig } from "@/lib/task-utils";
 import { Task } from "@/types/task";
 
@@ -22,7 +21,17 @@ export function DoneClient({ userId, initialTasks }: DoneClientProps) {
   const [activeView, setActiveView] = useState<ViewMode>("done");
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  const { tasks, addTask } = useTaskList({ initialTasks });
+  // Zustand Store
+  const { initializeTasks } = useTaskStore();
+  
+  // Initialize store with server data
+  useEffect(() => {
+    initializeTasks(initialTasks);
+  }, [initialTasks, initializeTasks]);
+  
+  // Get completed tasks from store
+  const doneTasks = useTaskStore(selectCompletedTasks)
+    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime());
 
   const {
     isLoading,
@@ -32,9 +41,8 @@ export function DoneClient({ userId, initialTasks }: DoneClientProps) {
     clearSession,
   } = useTaskCreation({
     userId,
-    onTaskCreated: (task) => {
-      addTask(task);
-      toast.success("タスクを追加しました");
+    onTaskCreated: () => {
+      // Task creation now handled by sidebar/store
     },
   });
 
@@ -45,10 +53,6 @@ export function DoneClient({ userId, initialTasks }: DoneClientProps) {
   const handleNewChat = useCallback(() => {
     clearSession();
   }, [clearSession]);
-
-  const doneTasks = tasks
-    .filter((task) => task.status === "done")
-    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime());
 
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col md:flex-row">

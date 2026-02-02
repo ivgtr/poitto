@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { toast } from "sonner";
+import { useState, useCallback, useEffect } from "react";
 import { ChatContainer } from "@/components/chat";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
-import { useTaskList } from "@/hooks/use-task-list";
-import { handleTaskUpdate } from "@/services/task-service";
+import { useTaskStore, selectActiveTasks } from "@/stores/task-store";
 import { Task } from "@/types/task";
 
 interface HomeClientProps {
@@ -24,8 +22,16 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
   const [activeView, setActiveView] = useState<ViewMode>("home");
   const [isChatOpen, setIsChatOpen] = useState(false);
 
-  // Single Responsibility Hooks
-  const { tasks, addTask, updateTask } = useTaskList({ initialTasks });
+  // Zustand Store
+  const { initializeTasks, updateTask } = useTaskStore();
+  
+  // Initialize store with server data
+  useEffect(() => {
+    initializeTasks(initialTasks);
+  }, [initialTasks, initializeTasks]);
+  
+  // Get active tasks from store (inbox + scheduled)
+  const tasks = useTaskStore(selectActiveTasks);
 
   const {
     isLoading,
@@ -35,7 +41,10 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
     clearSession,
   } = useTaskCreation({
     userId,
-    onTaskCreated: addTask,
+    onTaskCreated: () => {
+      // Task creation now handled by sidebar/store
+      // This callback kept for chat compatibility
+    },
   });
 
   const handleChatOpenChange = useCallback((open: boolean) => {
@@ -53,12 +62,13 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => {
-    try {
-      await handleTaskUpdate(taskId, data, updateTask);
-      toast.success("タスクを更新しました");
-    } catch {
-      toast.error("タスクの更新に失敗しました");
-    }
+    await updateTask(taskId, {
+      title: data.title,
+      category: data.category as any, // Type casting for Category
+      deadline: data.deadline,
+      scheduledAt: data.scheduledAt,
+      durationMinutes: data.durationMinutes,
+    });
   }, [updateTask]);
 
   return (
