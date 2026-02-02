@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { ChatContainer } from "@/components/chat";
 import { CalendarDayView } from "@/components/calendar/calendar-day-view";
 import { CalendarHeader } from "@/components/calendar/calendar-header";
@@ -9,7 +9,7 @@ import { CalendarWeekView } from "@/components/calendar/calendar-week-view";
 import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
-import { useTaskStore, selectScheduledTasks } from "@/stores/task-store";
+import { useTaskStore } from "@/stores/task-store";
 import { Task } from "@/types/task";
 
 type ViewMode = "home" | "calendar" | "chat" | "done";
@@ -28,7 +28,7 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Zustand Store
-  const { initializeTasks, updateTask, completeTask } = useTaskStore();
+  const { initializeTasks, updateTask, completeTask, tasks } = useTaskStore();
   
   // Initialize store with server data
   useEffect(() => {
@@ -36,7 +36,11 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
   }, [initialTasks, initializeTasks]);
   
   // Get scheduled tasks from store (scheduled + done with scheduledAt)
-  const tasks = useTaskStore(selectScheduledTasks);
+  // Filter inside component to avoid server/client mismatch
+  const scheduledTasks = useMemo(() => 
+    tasks.filter((t) => (t.status === "scheduled" || t.status === "done") && t.scheduledAt),
+    [tasks]
+  );
 
   const {
     isLoading,
@@ -112,7 +116,7 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
 
             {viewMode === "day" && (
               <CalendarDayView
-                tasks={tasks}
+                tasks={scheduledTasks}
                 selectedDate={selectedDate}
                 onComplete={completeTask}
                 onUpdate={handleEditTask}
@@ -121,7 +125,7 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
 
             {viewMode === "week" && (
               <CalendarWeekView
-                tasks={tasks}
+                tasks={scheduledTasks}
                 selectedDate={selectedDate}
                 onComplete={completeTask}
                 onUpdate={handleEditTask}
@@ -130,7 +134,7 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
 
             {viewMode === "month" && (
               <CalendarMonthView
-                tasks={tasks}
+                tasks={scheduledTasks}
                 selectedDate={selectedDate}
                 onSelectDate={handleSelectDate}
               />

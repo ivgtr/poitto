@@ -5,6 +5,7 @@ import { toTaskInfo } from "@/types/chat";
 import { generateNextQuestion } from "@/services/task-conversation-service";
 import { toast } from "sonner";
 import { MessageHandlerProps, MessageType } from "./types";
+import { LlmConfig } from "@/lib/local-storage";
 
 interface UseMessageSenderDeps {
   addUserMessage: MessageHandlerProps["addUserMessage"];
@@ -33,7 +34,7 @@ export function useMessageSender(deps: UseMessageSenderDeps) {
     isFirstInput,
   } = deps;
 
-  const handleSendMessage = useCallback(async (message: string, config: Parameters<ReturnType<typeof useMessageSender>["handleSendMessage"]>[1]) => {
+  const handleSendMessage = useCallback(async (message: string, config: LlmConfig) => {
     addUserMessage(message);
     setIsLoading(true);
 

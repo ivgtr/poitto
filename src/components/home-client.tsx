@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { ChatContainer } from "@/components/chat";
 import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
-import { useTaskStore, selectActiveTasks } from "@/stores/task-store";
+import { useTaskStore } from "@/stores/task-store";
 import { Task } from "@/types/task";
 
 interface HomeClientProps {
@@ -23,7 +23,7 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Zustand Store
-  const { initializeTasks, updateTask } = useTaskStore();
+  const { initializeTasks, updateTask, tasks } = useTaskStore();
   
   // Initialize store with server data
   useEffect(() => {
@@ -31,7 +31,11 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
   }, [initialTasks, initializeTasks]);
   
   // Get active tasks from store (inbox + scheduled)
-  const tasks = useTaskStore(selectActiveTasks);
+  // Filter inside component to avoid server/client mismatch
+  const activeTasks = useMemo(() => 
+    tasks.filter((t) => t.status === "inbox" || t.status === "scheduled"),
+    [tasks]
+  );
 
   const {
     isLoading,
@@ -95,7 +99,7 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 期限別ボード
               </h2>
-              <KanbanBoard tasks={tasks} onUpdate={handleEditTask} />
+              <KanbanBoard tasks={activeTasks} onUpdate={handleEditTask} />
             </div>
           </div>
         </div>

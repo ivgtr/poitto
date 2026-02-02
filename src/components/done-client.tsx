@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { ChatContainer } from "@/components/chat";
 import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
-import { useTaskStore, selectCompletedTasks } from "@/stores/task-store";
+import { useTaskStore } from "@/stores/task-store";
 import { categoryConfig } from "@/lib/task-utils";
 import { Task } from "@/types/task";
 
@@ -22,7 +22,7 @@ export function DoneClient({ userId, initialTasks }: DoneClientProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Zustand Store
-  const { initializeTasks } = useTaskStore();
+  const { initializeTasks, tasks } = useTaskStore();
   
   // Initialize store with server data
   useEffect(() => {
@@ -30,8 +30,13 @@ export function DoneClient({ userId, initialTasks }: DoneClientProps) {
   }, [initialTasks, initializeTasks]);
   
   // Get completed tasks from store
-  const doneTasks = useTaskStore(selectCompletedTasks)
-    .sort((left, right) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime());
+  // Filter inside component to avoid server/client mismatch
+  const doneTasks = useMemo(() => 
+    tasks
+      .filter((t) => t.status === "done")
+      .sort((left: Task, right: Task) => new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime()),
+    [tasks]
+  );
 
   const {
     isLoading,

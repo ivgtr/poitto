@@ -94,7 +94,7 @@ export function buildTaskInfoFromLlmResponse(
     category: ["shopping", "reply", "work", "personal", "other"].includes(parsed.category as string) ? parsed.category as string : null,
     scheduledDate,
     scheduledTime,
-    deadline: normalizeDateTime(parsed.deadline) || (typeof parsed.deadline === "string" ? parsed.deadline : null),
+    deadline: (typeof parsed.deadline === "string" ? normalizeDateTime(parsed.deadline) : null) || null,
     durationMinutes: parseDurationToMinutes(String(parsed.durationMinutes)) || (typeof parsed.durationMinutes === "number" && parsed.durationMinutes > 0 ? parsed.durationMinutes : null),
   };
 }
