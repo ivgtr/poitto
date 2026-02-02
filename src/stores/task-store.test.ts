@@ -26,6 +26,7 @@ describe("useTaskStore", () => {
     const store = useTaskStore.getState();
     store.initializeTasks([]);
     store.clearError();
+    store.clearUndo();
     vi.clearAllMocks();
   });
 
@@ -357,6 +358,174 @@ describe("useTaskStore", () => {
 
       expect(activeTasks).toHaveLength(2);
       expect(completedTasks).toHaveLength(1);
+    });
+  });
+
+  describe("undo infrastructure", () => {
+    it("should clear undo state and timeout", () => {
+      vi.useFakeTimers();
+      const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
+
+      const previousTask: TaskWithMeta = {
+        id: "1",
+        userId: "user1",
+        title: "Original",
+        category: "work" as Category,
+        deadline: null,
+        scheduledAt: null,
+        durationMinutes: null,
+        status: "inbox" as TaskStatus,
+        completedAt: null,
+        rawInput: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        _syncStatus: "synced",
+        _localTimestamp: Date.now(),
+      };
+
+      const timeoutId = setTimeout(() => {}, 5000);
+
+      act(() => {
+        useTaskStore.setState({
+          undoState: {
+            taskId: "1",
+            operation: "update",
+            previousTask,
+            timeoutId,
+          },
+        });
+      });
+
+      act(() => {
+        useTaskStore.getState().clearUndo();
+      });
+
+      const state = useTaskStore.getState();
+      expect(state.undoState).toBeNull();
+      expect(clearTimeoutSpy).toHaveBeenCalled();
+
+      clearTimeoutSpy.mockRestore();
+      vi.useRealTimers();
+    });
+
+    it("should restore previous task on undo", async () => {
+      vi.useFakeTimers();
+      const previousTaskData: Task = {
+        id: "1",
+        userId: "user1",
+        title: "Original",
+        category: "work" as Category,
+        deadline: null,
+        scheduledAt: null,
+        durationMinutes: null,
+        status: "inbox" as TaskStatus,
+        completedAt: null,
+        rawInput: null,
+        createdAt: new Date(),
+        updatedAt: new Date(Date.now() - 1000),
+      };
+
+      const previousTask: TaskWithMeta = {
+        ...previousTaskData,
+        _syncStatus: "synced",
+        _localTimestamp: Date.now() - 1000,
+      };
+
+      const modifiedTask: TaskWithMeta = {
+        ...previousTask,
+        title: "Modified",
+        updatedAt: new Date(),
+        _syncStatus: "pending",
+      };
+
+      const timeoutId = setTimeout(() => {}, 5000);
+
+      vi.mocked(actions.updateTask).mockResolvedValue({
+        success: true,
+        data: previousTaskData,
+      });
+
+      act(() => {
+        useTaskStore.setState({
+          tasks: [modifiedTask],
+          undoState: {
+            taskId: "1",
+            operation: "update",
+            previousTask,
+            timeoutId,
+          },
+        });
+      });
+
+      await act(async () => {
+        await useTaskStore.getState().undo();
+      });
+
+      const state = useTaskStore.getState();
+      expect(state.tasks[0].title).toBe("Original");
+      expect(state.undoState).toBeNull();
+
+      vi.useRealTimers();
+    });
+
+    it("should restore previous status on complete undo", async () => {
+      vi.useFakeTimers();
+      const previousTaskData: Task = {
+        id: "2",
+        userId: "user1",
+        title: "Complete Target",
+        category: "work" as Category,
+        deadline: null,
+        scheduledAt: null,
+        durationMinutes: null,
+        status: "inbox" as TaskStatus,
+        completedAt: null,
+        rawInput: null,
+        createdAt: new Date(),
+        updatedAt: new Date(Date.now() - 1000),
+      };
+
+      const previousTask: TaskWithMeta = {
+        ...previousTaskData,
+        _syncStatus: "synced",
+        _localTimestamp: Date.now() - 1000,
+      };
+
+      const completedTask: TaskWithMeta = {
+        ...previousTask,
+        status: "done" as TaskStatus,
+        completedAt: new Date(),
+        _syncStatus: "pending",
+      };
+
+      const timeoutId = setTimeout(() => {}, 5000);
+
+      vi.mocked(actions.updateTaskStatus).mockResolvedValue({
+        success: true,
+        data: previousTaskData,
+      });
+
+      act(() => {
+        useTaskStore.setState({
+          tasks: [completedTask],
+          undoState: {
+            taskId: "2",
+            operation: "complete",
+            previousTask,
+            timeoutId,
+          },
+        });
+      });
+
+      await act(async () => {
+        await useTaskStore.getState().undo();
+      });
+
+      const state = useTaskStore.getState();
+      expect(state.tasks[0].status).toBe("inbox");
+      expect(state.undoState).toBeNull();
+
+      vi.useRealTimers();
     });
   });
 });

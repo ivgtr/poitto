@@ -87,7 +87,7 @@ export function DoneClient({ userId, initialTasks }: DoneClientProps) {
                   return (
                     <div
                       key={task.id}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-3 ${config.bgColor} border border-gray-200/50`}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-3 ${config.bgColor} border border-gray-200/50 transition-all duration-200 ease-out`}
                     >
                       <span className="text-xl">{config.icon}</span>
                       <div className="min-w-0">

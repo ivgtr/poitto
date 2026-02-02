@@ -30,7 +30,7 @@ export function KanbanCard({ task, onUpdate }: KanbanCardProps) {
     : null;
 
   return (
-    <div className="relative max-h-[180px] overflow-hidden rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm transition-shadow hover:shadow-md">
+    <div className="relative max-h-[180px] overflow-hidden rounded-xl border border-gray-200 bg-white px-3 py-2 shadow-sm transition-all duration-200 ease-out hover:shadow-md">
       {onUpdate && (
         <div className="absolute right-2 top-2">
           <TaskEditDialog task={task} onSave={onUpdate} />

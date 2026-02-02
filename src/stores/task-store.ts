@@ -38,12 +38,25 @@ export interface UpdateTaskData {
   durationMinutes?: number | null;
 }
 
+const UNDO_TIMEOUT_MS = 5000;
+
+type UndoOperation = "update" | "complete";
+
+// Undo状態の型定義
+interface UndoState {
+  taskId: string;
+  operation: UndoOperation;
+  previousTask: TaskWithMeta;
+  timeoutId: ReturnType<typeof setTimeout>;
+}
+
 interface TaskState {
   // State
   tasks: TaskWithMeta[];
   isLoading: boolean;
   error: string | null;
   lastServerSync: number | null;
+  undoState: UndoState | null; // Undo用状態（単一タスクのみ）
 
   // Actions - Initialization
   initializeTasks: (tasks: Task[]) => void;
@@ -62,6 +75,10 @@ interface TaskState {
 
   // Actions - Delete (soft delete by status change)
   archiveTask: (taskId: string) => Promise<void>;
+
+  // Actions - Undo
+  undo: () => Promise<void>;
+  clearUndo: () => void;
 
   // Actions - Clear
   clearError: () => void;
@@ -109,6 +126,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   isLoading: false,
   error: null,
   lastServerSync: null,
+  undoState: null,
 
   // 初期化
   initializeTasks: (tasks: Task[]) => {
@@ -278,6 +296,25 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       return null;
     }
 
+    // 既存のUndo状態をクリア
+    const existingUndo = get().undoState;
+    if (existingUndo) {
+      clearTimeout(existingUndo.timeoutId);
+    }
+
+    const timeoutId = setTimeout(() => {
+      get().clearUndo();
+    }, UNDO_TIMEOUT_MS);
+
+    set({
+      undoState: {
+        taskId,
+        operation: "update",
+        previousTask: currentTask,
+        timeoutId,
+      },
+    });
+
     // 楽観的更新
     const optimisticTask: TaskWithMeta = {
       ...currentTask,
@@ -324,7 +361,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           tasks: state.tasks.map((t) => (t.id === taskId ? actualTask : t)),
         }));
 
-        toast.success("タスクを更新しました");
+        toast.success("タスクを更新しました", {
+          duration: UNDO_TIMEOUT_MS,
+          action: {
+            label: "元に戻す",
+            onClick: () => {
+              get().undo();
+            },
+          },
+        });
         return result.data;
       } else {
         throw new Error(result.error?.userMessage || "タスク更新に失敗しました");
@@ -332,11 +377,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     } catch (error) {
       console.error("[updateTask] Error:", error);
 
-      // 失敗: conflict状態に変更
+      // 失敗: 元の状態に戻す
       set((state) => ({
         tasks: state.tasks.map((t) =>
-          t.id === taskId ? { ...t, _syncStatus: "conflict" } : t
+          t.id === taskId ? currentTask : t
         ),
+        undoState: null,
       }));
 
       toast.error(
@@ -355,6 +401,25 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       toast.error("タスクが見つかりません");
       return;
     }
+
+    // 既存のUndo状態をクリア
+    const existingUndo = get().undoState;
+    if (existingUndo) {
+      clearTimeout(existingUndo.timeoutId);
+    }
+
+    const timeoutId = setTimeout(() => {
+      get().clearUndo();
+    }, UNDO_TIMEOUT_MS);
+
+    set({
+      undoState: {
+        taskId,
+        operation: "complete",
+        previousTask: currentTask,
+        timeoutId,
+      },
+    });
 
     // 楽観的更新
     set((state) => ({
@@ -383,7 +448,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
               : t
           ),
         }));
-        toast.success("タスクを完了しました");
+        toast.success("タスクを完了しました", {
+          duration: UNDO_TIMEOUT_MS,
+          action: {
+            label: "元に戻す",
+            onClick: () => {
+              get().undo();
+            },
+          },
+        });
       } else {
         throw new Error("タスク完了に失敗しました");
       }
@@ -392,8 +465,9 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
       set((state) => ({
         tasks: state.tasks.map((t) =>
-          t.id === taskId ? { ...t, _syncStatus: "conflict" } : t
+          t.id === taskId ? currentTask : t
         ),
+        undoState: null,
       }));
 
       toast.error("タスク完了に失敗しました");
@@ -440,6 +514,104 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
       toast.error("タスクのアーカイブに失敗しました");
     }
+  },
+
+  // Undo: 直前のタスク状態に戻す
+  undo: async (): Promise<void> => {
+    const currentUndo = get().undoState;
+    if (!currentUndo) return;
+
+    const { taskId, previousTask, operation } = currentUndo;
+    clearTimeout(currentUndo.timeoutId);
+
+    // まずはローカル状態を即座に復元
+    set((state) => {
+      const hasTask = state.tasks.some((t) => t.id === taskId);
+      const restoredTasks = hasTask
+        ? state.tasks.map((t) => (t.id === taskId ? previousTask : t))
+        : [previousTask, ...state.tasks];
+
+      return {
+        tasks: restoredTasks,
+        undoState: null,
+      };
+    });
+
+    if (operation === "update") {
+      try {
+        const result = await updateTaskAction(taskId, {
+          title: previousTask.title,
+          category: previousTask.category,
+          deadline: previousTask.deadline,
+          scheduledAt: previousTask.scheduledAt,
+          durationMinutes: previousTask.durationMinutes,
+        });
+
+        if (result.success && result.data) {
+          const actualTask: TaskWithMeta = {
+            ...result.data,
+            _syncStatus: "synced",
+            _localTimestamp: Date.now(),
+          };
+          set((state) => ({
+            tasks: state.tasks.map((t) =>
+              t.id === taskId ? actualTask : t
+            ),
+          }));
+        } else {
+          throw new Error(result.error?.userMessage || "元に戻せませんでした");
+        }
+      } catch (error) {
+        console.error("[undo:update] Error:", error);
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === taskId ? { ...t, _syncStatus: "conflict" } : t
+          ),
+        }));
+        toast.error("元に戻せませんでした");
+      }
+    }
+
+    if (operation === "complete") {
+      try {
+        const result = await updateTaskStatusAction(
+          taskId,
+          previousTask.status
+        );
+
+        if (result.success && result.data) {
+          const actualTask: TaskWithMeta = {
+            ...result.data,
+            _syncStatus: "synced",
+            _localTimestamp: Date.now(),
+          };
+          set((state) => ({
+            tasks: state.tasks.map((t) =>
+              t.id === taskId ? actualTask : t
+            ),
+          }));
+        } else {
+          throw new Error(result.error?.userMessage || "元に戻せませんでした");
+        }
+      } catch (error) {
+        console.error("[undo:complete] Error:", error);
+        set((state) => ({
+          tasks: state.tasks.map((t) =>
+            t.id === taskId ? { ...t, _syncStatus: "conflict" } : t
+          ),
+        }));
+        toast.error("元に戻せませんでした");
+      }
+    }
+  },
+
+  // Undo状態をクリア
+  clearUndo: () => {
+    const currentUndo = get().undoState;
+    if (currentUndo) {
+      clearTimeout(currentUndo.timeoutId);
+    }
+    set({ undoState: null });
   },
 
   // エラークリア
