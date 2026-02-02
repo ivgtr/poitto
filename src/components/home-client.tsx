@@ -1,20 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Task } from "@/types/task";
-import { Timeline } from "@/components/timeline";
-import { Inbox } from "@/components/inbox";
 import { toast } from "sonner";
-
-// Components
-import { Sidebar } from "./home/sidebar";
-import { MobileNav } from "./home/mobile-nav";
 import { ChatContainer } from "@/components/chat";
-
-// Hooks - SOLID原則に従って単一責務に分割
-import { useTaskList } from "@/hooks/use-task-list";
+import { KanbanBoard } from "@/components/kanban/kanban-board";
+import { MobileNav } from "@/components/home/mobile-nav";
+import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
+import { useTaskList } from "@/hooks/use-task-list";
 import { handleTaskUpdate } from "@/services/task-service";
+import { Task } from "@/types/task";
 
 interface HomeClientProps {
   userId: string;
@@ -30,7 +25,7 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
   const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Single Responsibility Hooks
-  const { tasks, completeTask, addTask, updateTask } = useTaskList({ initialTasks });
+  const { tasks, addTask, updateTask } = useTaskList({ initialTasks });
 
   const {
     isLoading,
@@ -85,23 +80,12 @@ export function HomeClient({ userId, initialTasks }: HomeClientProps) {
 
         {/* Content Area - Only this scrolls */}
         <div className="flex-1 overflow-y-auto overscroll-contain p-4 md:p-6 pb-24 md:pb-6">
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Inbox */}
-            {tasks.filter((t) => t.status === "inbox").length > 0 && (
-              <Inbox
-                tasks={tasks}
-                onComplete={completeTask}
-                onSchedule={() => toast.info("スケジュール機能は準備中です")}
-                onUpdate={handleEditTask}
-              />
-            )}
-
-            {/* Timeline */}
+          <div className="max-w-6xl mx-auto space-y-6">
             <div>
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
-                今日のタイムライン
+                期限別ボード
               </h2>
-              <Timeline tasks={tasks} onComplete={completeTask} onUpdate={handleEditTask} />
+              <KanbanBoard tasks={tasks} onUpdate={handleEditTask} />
             </div>
           </div>
         </div>

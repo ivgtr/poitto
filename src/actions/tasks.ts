@@ -23,13 +23,34 @@ import {
  * データアクセス + キャッシュ制御 + 統一エラーハンドリング
  */
 
-export async function getTasks(userId: string): Promise<ActionResult<Task[]>> {
+type TaskStatusValue = "inbox" | "scheduled" | "done" | "archived";
+const VALID_TASK_STATUS_SET = new Set<string>([
+  "inbox",
+  "scheduled",
+  "done",
+  "archived",
+]);
+
+function isValidStatus(value: string): value is TaskStatusValue {
+  return VALID_TASK_STATUS_SET.has(value);
+}
+
+export async function getTasks(
+  userId: string,
+  status: string[]
+): Promise<ActionResult<Task[]>> {
   try {
     if (!userId) {
       return failure(createError(ErrorCode.UNAUTHORIZED, "User ID is required"));
     }
 
-    const tasks = await getTasksFromDB(userId);
+    const filteredStatuses = status.filter(isValidStatus);
+
+    if (filteredStatuses.length === 0) {
+      return success([]);
+    }
+
+    const tasks = await getTasksFromDB(userId, filteredStatuses);
     return success(tasks);
   } catch (error) {
     console.error("[getTasks] Error:", error);

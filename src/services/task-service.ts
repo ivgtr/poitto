@@ -27,7 +27,7 @@ function combineScheduledDateTime(
 
 export interface TaskService {
   create(taskInfo: TaskInfo, userId: string): Promise<Task>;
-  complete(taskId: string): Promise<void>;
+  complete(taskId: string): Promise<Task>;
   update(taskId: string, data: {
     title?: string;
     category?: string;
@@ -60,9 +60,9 @@ export const taskService: TaskService = {
     return handleActionResult(result);
   },
 
-  async complete(taskId: string): Promise<void> {
+  async complete(taskId: string): Promise<Task> {
     const result = await updateTaskStatus(taskId, "done");
-    handleActionResult(result);
+    return handleActionResult(result);
   },
 
   async update(taskId: string, data: {

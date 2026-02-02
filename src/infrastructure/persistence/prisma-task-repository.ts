@@ -39,6 +39,9 @@ export async function createTaskInDB(userId: string, data: {
 }
 
 export async function getTasksFromDB(userId: string, status?: string[]): Promise<Task[]> {
+  if (status && status.length === 0) {
+    return [];
+  }
   const whereStatus = status?.length
     ? { in: status }
     : { in: ["inbox", "scheduled"] };

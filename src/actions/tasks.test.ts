@@ -48,15 +48,15 @@ describe('Task Server Actions', () => {
 
       vi.mocked(getTasksFromDB).mockResolvedValue(mockTasks)
 
-      const result = await getTasks('user-1')
+      const result = await getTasks('user-1', ['inbox', 'scheduled'])
 
       expect(result.success).toBe(true)
       expect(result.data).toEqual(mockTasks)
-      expect(getTasksFromDB).toHaveBeenCalledWith('user-1')
+      expect(getTasksFromDB).toHaveBeenCalledWith('user-1', ['inbox', 'scheduled'])
     })
 
     it('should return error when userId is empty', async () => {
-      const result = await getTasks('')
+      const result = await getTasks('', [])
 
       expect(result.success).toBe(false)
       expect(result.error).toBeDefined()
@@ -66,10 +66,28 @@ describe('Task Server Actions', () => {
     it('should return error when repository throws', async () => {
       vi.mocked(getTasksFromDB).mockRejectedValue(new Error('DB Error'))
 
-      const result = await getTasks('user-1')
+      const result = await getTasks('user-1', ['inbox', 'scheduled'])
 
       expect(result.success).toBe(false)
       expect(result.error).toBeDefined()
+    })
+
+    it('should return empty array when status is empty', async () => {
+      const result = await getTasks('user-1', [])
+
+      expect(result.success).toBe(true)
+      expect(result.data).toEqual([])
+      expect(getTasksFromDB).not.toHaveBeenCalled()
+    })
+
+    it('should pass filtered status to repository', async () => {
+      const mockTasks: Task[] = []
+      vi.mocked(getTasksFromDB).mockResolvedValue(mockTasks)
+
+      const result = await getTasks('user-1', ['scheduled', 'unknown', 'done'])
+
+      expect(result.success).toBe(true)
+      expect(getTasksFromDB).toHaveBeenCalledWith('user-1', ['scheduled', 'done'])
     })
   })
 

@@ -11,7 +11,7 @@ export default async function Home() {
     redirect("/login");
   }
 
-  const result = await getTasks(session.user.id);
+  const result = await getTasks(session.user.id, ["inbox", "scheduled"]);
 
   if (!result.success) {
     // エラー時は空配列を返す（エラー表示はクライアント側で）

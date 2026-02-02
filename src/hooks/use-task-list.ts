@@ -21,8 +21,10 @@ export function useTaskList({ initialTasks }: UseTaskListProps): UseTaskListRetu
 
   const completeTask = useCallback(async (taskId: string) => {
     try {
-      await taskService.complete(taskId);
-      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      const updatedTask = await taskService.complete(taskId);
+      setTasks((prev) =>
+        prev.map((task) => (task.id === taskId ? updatedTask : task))
+      );
       toast.success("タスクを完了しました");
     } catch {
       toast.error("エラーが発生しました");

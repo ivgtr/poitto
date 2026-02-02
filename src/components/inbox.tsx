@@ -5,6 +5,7 @@ import { Task } from "@/types/task";
 import { categoryConfig } from "@/lib/task-utils";
 import { Calendar, Check } from "lucide-react";
 import { TaskEditDialog } from "./task-edit";
+import { getRemainingDaysLabel, getRemainingDaysColor } from "@/domain/task/time-utils";
 
 interface InboxProps {
   tasks: Task[];
@@ -53,9 +54,18 @@ export function Inbox({ tasks, onComplete, onSchedule, onUpdate }: InboxProps) {
             >
               <span className="text-xl">{config.icon}</span>
               <div className="flex-1 min-w-0">
-                <p className={`font-medium truncate ${config.color}`}>
-                  {task.title}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className={`font-medium truncate ${config.color}`}>
+                    {task.title}
+                  </p>
+                  {task.deadline && (
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full border whitespace-nowrap ${getRemainingDaysColor(task.deadline)}`}
+                    >
+                      {getRemainingDaysLabel(task.deadline)}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex gap-1">
                 {onUpdate && (
