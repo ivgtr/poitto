@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { CalendarAllDayRow } from "@/components/calendar/calendar-all-day-row";
 import { CalendarDayHeaders } from "@/components/calendar/calendar-day-headers";
 import { CalendarEventCard } from "@/components/calendar/calendar-event-card";
 import { CalendarTimeAxis } from "@/components/calendar/calendar-time-axis";
@@ -21,6 +22,7 @@ interface CalendarDayViewProps {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => Promise<void>;
@@ -38,8 +40,8 @@ export function CalendarDayView({
   const minimumEventHeight = 24;
 
   const scheduledTasks = getScheduledTasks(tasks);
-  const dayTasks = scheduledTasks.filter((task) =>
-    isSameDate(task.scheduledAt!, selectedDate)
+  const dayTasks = scheduledTasks.filter(
+    (task) => task.scheduledAt && isSameDate(task.scheduledAt, selectedDate)
   );
 
   const now = new Date();
@@ -67,6 +69,12 @@ export function CalendarDayView({
           </div>
         </div>
       </div>
+      <CalendarAllDayRow
+        days={[selectedDate]}
+        tasks={scheduledTasks}
+        onComplete={onComplete}
+        onUpdate={onUpdate}
+      />
       <div className="flex">
         <div className="w-16">
           <CalendarTimeAxis rowHeight={rowHeight} />

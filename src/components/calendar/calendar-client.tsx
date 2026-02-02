@@ -10,6 +10,7 @@ import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
 import { useTaskStore } from "@/stores/task-store";
+import { normalizeCategory } from "@/lib/task-utils";
 import { Task } from "@/types/task";
 
 type ViewMode = "home" | "calendar" | "chat" | "done";
@@ -37,8 +38,13 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
   
   // Get scheduled tasks from store (scheduled + done with scheduledAt)
   // Filter inside component to avoid server/client mismatch
-  const scheduledTasks = useMemo(() => 
-    tasks.filter((t) => (t.status === "scheduled" || t.status === "done") && t.scheduledAt),
+  const scheduledTasks = useMemo(
+    () =>
+      tasks.filter(
+        (t) =>
+          (t.status === "scheduled" || t.status === "done") &&
+          (t.scheduledAt || t.scheduledDate)
+      ),
     [tasks]
   );
 
@@ -70,14 +76,16 @@ export function CalendarClient({ userId, initialTasks }: CalendarClientProps) {
         title: string;
         category: string;
         deadline?: Date | null;
+        scheduledDate?: string | null;
         scheduledAt?: Date | null;
         durationMinutes?: number | null;
       }
     ) => {
       await updateTask(taskId, {
         title: data.title,
-        category: data.category as any,
+        category: normalizeCategory(data.category),
         deadline: data.deadline,
+        scheduledDate: data.scheduledDate,
         scheduledAt: data.scheduledAt,
         durationMinutes: data.durationMinutes,
       });

@@ -38,6 +38,10 @@ export function formatDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+export function isSameDateString(dateString: string, date: Date): boolean {
+  return dateString === formatDateKey(date);
+}
+
 export function formatDayLabel(date: Date): string {
   return date.toLocaleDateString("ja-JP", {
     month: "numeric",

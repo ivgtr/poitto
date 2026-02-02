@@ -19,12 +19,16 @@ export function CalendarMonthView({
   onSelectDate,
 }: CalendarMonthViewProps) {
   const scheduledTasks = tasks.filter(
-    (task): task is Task & { scheduledAt: Date } =>
-      task.status === "scheduled" && task.scheduledAt !== null
+    (task) =>
+      (task.status === "scheduled" || task.status === "done") &&
+      (task.scheduledAt || task.scheduledDate)
   );
   const taskCountByDate = scheduledTasks.reduce<Record<string, number>>(
     (acc, task) => {
-      const key = formatDateKey(task.scheduledAt);
+      const key = task.scheduledAt
+        ? formatDateKey(task.scheduledAt)
+        : task.scheduledDate;
+      if (!key) return acc;
       acc[key] = (acc[key] ?? 0) + 1;
       return acc;
     },
@@ -33,7 +37,7 @@ export function CalendarMonthView({
 
   // Get dates that have tasks
   const datesWithTasks = Object.keys(taskCountByDate).map(
-    (key) => new Date(key)
+    (key) => new Date(`${key}T00:00:00+09:00`)
   );
 
   const defaultClassNames = getDefaultClassNames();

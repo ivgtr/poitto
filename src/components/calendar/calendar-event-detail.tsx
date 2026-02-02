@@ -13,6 +13,7 @@ interface CalendarEventDetailProps {
     title: string;
     category: string;
     deadline?: Date | null;
+    scheduledDate?: string | null;
     scheduledAt?: Date | null;
     durationMinutes?: number | null;
   }) => Promise<void>;
@@ -32,13 +33,20 @@ export function CalendarEventDetail({
 }: CalendarEventDetailProps) {
   const config = categoryConfig[task.category];
   const scheduledAt = task.scheduledAt ? new Date(task.scheduledAt) : null;
+  const scheduledDate = task.scheduledDate;
   const dateLabel = scheduledAt
     ? scheduledAt.toLocaleDateString("ja-JP", {
         month: "numeric",
         day: "numeric",
         weekday: "short",
       })
-    : "日付未定";
+    : scheduledDate
+      ? new Date(`${scheduledDate}T00:00:00+09:00`).toLocaleDateString("ja-JP", {
+          month: "numeric",
+          day: "numeric",
+          weekday: "short",
+        })
+      : "日付未定";
   const timeLabel = scheduledAt
     ? task.durationMinutes
       ? formatTimeRange(scheduledAt, task.durationMinutes)
