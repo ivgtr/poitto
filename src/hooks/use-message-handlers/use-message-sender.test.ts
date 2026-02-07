@@ -13,8 +13,6 @@ vi.mock("sonner", () => ({
   },
 }));
 
-const mockParseTask = vi.fn();
-
 describe("useMessageSender", () => {
   const mockDeps = {
     addUserMessage: vi.fn(),

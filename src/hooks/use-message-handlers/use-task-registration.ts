@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback } from "react";
-import { Task } from "@/types/task";
 import { TaskInfo, getNextMissingField } from "@/domain/task/task-fields";
 import { toTaskInfo } from "@/types/chat";
 import { taskService } from "@/services/task-service";

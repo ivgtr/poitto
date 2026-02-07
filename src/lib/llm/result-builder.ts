@@ -1,4 +1,3 @@
-import { LlmConfig } from "@/lib/local-storage";
 import { TaskInfo, ParseResult, REQUIRED_FIELDS, generateQuestion, getFieldOptions } from "@/domain/task/task-fields";
 import { normalizeDateTime, parseDurationToMinutes } from "@/domain/task/time-utils";
 
