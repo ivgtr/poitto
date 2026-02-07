@@ -225,9 +225,13 @@ describe('useTaskEditForm', () => {
 
     it('should set isLoading during save', async () => {
       const task = createMockTask()
-      let resolveSave: (() => void) | null = null
+      let resolveSave = (): void => {}
+      let resolveSaveSet = false
       const slowOnSave = vi.fn().mockImplementation(() => 
-        new Promise<void>(resolve => { resolveSave = resolve })
+        new Promise<void>(resolve => {
+          resolveSave = resolve
+          resolveSaveSet = true
+        })
       )
       
       const { result } = renderHook(() =>
@@ -247,7 +251,7 @@ describe('useTaskEditForm', () => {
       })
 
       // Resolve the save promise
-      if (resolveSave) {
+      if (resolveSaveSet) {
         resolveSave()
       }
 
@@ -279,9 +283,13 @@ describe('useTaskEditForm', () => {
 
     it('should be false when loading', async () => {
       const task = createMockTask()
-      let resolveSave: (() => void) | null = null
+      let resolveSave = (): void => {}
+      let resolveSaveSet = false
       const slowOnSave = vi.fn().mockImplementation(() => 
-        new Promise<void>(resolve => { resolveSave = resolve })
+        new Promise<void>(resolve => {
+          resolveSave = resolve
+          resolveSaveSet = true
+        })
       )
       
       const { result } = renderHook(() =>
@@ -302,7 +310,7 @@ describe('useTaskEditForm', () => {
       expect(result.current.canSave).toBe(false)
 
       // Cleanup
-      if (resolveSave) {
+      if (resolveSaveSet) {
         resolveSave()
       }
     })

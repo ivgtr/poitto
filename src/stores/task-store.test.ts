@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useTaskStore, CreateTaskData, TaskWithMeta } from "./task-store";
 import { Task, Category, TaskStatus } from "@/types/task";
+import { AppError, ErrorCode } from "@/lib/errors";
 import * as actions from "@/actions/tasks";
 import { act } from "@testing-library/react";
 
@@ -198,9 +199,15 @@ describe("useTaskStore", () => {
         category: "work",
       };
 
+      const error: AppError = {
+        code: ErrorCode.UNKNOWN_ERROR,
+        message: "Failed",
+        userMessage: "Failed",
+      };
+
       vi.mocked(actions.createTask).mockResolvedValue({
         success: false,
-        error: { code: "UNKNOWN_ERROR", userMessage: "Failed", logMessage: "" } as any,
+        error,
       });
 
       await act(async () => {
