@@ -30,7 +30,7 @@ export function ChatMessages({
   }, [messages]);
 
   return (
-    <div className="flex-1 overflow-y-auto space-y-4 p-4">
+    <div className="flex-1 overflow-y-auto space-y-4 p-4 pb-32">
       {messages.length === 0 && (
         <div className="text-center text-gray-400 py-8">
           <p className="text-lg font-medium mb-2">タスクを追加</p>
