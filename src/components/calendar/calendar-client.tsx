@@ -10,7 +10,7 @@ import { MobileNav } from "@/components/home/mobile-nav";
 import { Sidebar } from "@/components/home/sidebar";
 import { useTaskCreation } from "@/hooks/use-task-creation";
 import { useTaskStore } from "@/stores/task-store";
-import { normalizeCategory } from "@/lib/task-utils";
+import { normalizeCategory } from "@/domain/task/category-utils";
 import { Task } from "@/types/task";
 
 type ViewMode = "home" | "calendar" | "chat" | "done";
